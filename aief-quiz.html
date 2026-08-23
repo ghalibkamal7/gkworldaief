@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AIEF Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F0EB; --bg-alt:#E8E5DB; --card:#FFFFFF; --ink:#16233D; --ink-soft:#5B6B85; --ink-faint:#8B95A8;
+    --line:#DAD6C9; --primary:#2C4A7C; --primary-dark:#1B3257; --accent:#E8A33D; --accent-dark:#C4841F;
+    --success:#2F7D5D; --success-bg:#E4F1EA; --danger:#B23A34; --danger-bg:#FBEAE8;
+    --radius:16px; --shadow:0 1px 2px rgba(22,35,61,.05), 0 6px 20px rgba(22,35,61,.06);
+  }
+  body[data-theme="dark"]{
+    --bg:#0F1626; --bg-alt:#1A2338; --card:#161F33; --ink:#EEF1F7; --ink-soft:#AEB9CE; --ink-faint:#748099;
+    --line:#28324A; --primary:#5B85C4; --primary-dark:#3E6398; --accent:#F0B255; --accent-dark:#D6912B;
+    --success:#4CAE85; --success-bg:#12291F; --danger:#E2685F; --danger-bg:#301617;
+    --shadow:0 1px 2px rgba(0,0,0,.2), 0 6px 20px rgba(0,0,0,.28);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ background:var(--bg); color:var(--ink); font-family:'Inter','Noto Sans Devanagari',sans-serif; -webkit-font-smoothing:antialiased; display:flex; justify-content:center; transition:background .2s,color .2s; }
+  #app{ width:100%; max-width:430px; min-height:100vh; background:var(--bg); position:relative; display:flex; flex-direction:column; }
+  .num, .mono{ font-family:'JetBrains Mono',monospace; }
+  h1,h2,h3,.display{ font-family:'Space Grotesk',sans-serif; letter-spacing:-0.01em; }
+  [lang="hi"], .lang-hi{ font-family:'Noto Sans Devanagari','Inter',sans-serif; }
+  button{ font-family:inherit; cursor:pointer; border:none; background:none; color:inherit; }
+  a{ color:inherit; text-decoration:none; }
+  input{ font-family:inherit; }
+
+  .screen{ display:none; flex-direction:column; flex:1; padding-bottom:86px; animation:fadeIn .25s ease; }
+  .screen.active{ display:flex; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  #lang-gate{ position:fixed; inset:0; background:var(--primary-dark); z-index:100; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:32px; color:#fff; }
+  #lang-gate.hidden{ display:none; }
+  .gate-wrap{ width:100%; max-width:380px; }
+  .gate-mark{ width:56px; height:56px; border-radius:14px; background:var(--accent); display:flex; align-items:center; justify-content:center; margin-bottom:22px; font-family:'Space Grotesk'; font-weight:700; color:var(--primary-dark); font-size:22px; }
+  .gate-wrap h1{ font-size:26px; margin:0 0 6px; }
+  .gate-wrap p.sub{ color:#C7D2E4; margin:0 0 28px; font-size:14px; }
+  .lang-option{ width:100%; display:flex; align-items:center; justify-content:space-between; padding:16px 18px; margin-bottom:10px; border-radius:12px; background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.14); color:#fff; font-size:16px; transition:.15s; }
+  .lang-option.more{ opacity:.5; }
+  .lang-option span.native{ font-size:17px; }
+  .lang-option span.eng{ font-size:12px; color:#A9B7CC; }
+  .lang-option .tick{ width:18px; height:18px; border-radius:50%; border:1.5px solid rgba(255,255,255,.4); }
+  .lang-option.selected{ background:rgba(232,163,61,.16); border-color:var(--accent); }
+  .lang-option.selected .tick{ background:var(--accent); border-color:var(--accent); }
+  .gate-cta{ margin-top:18px; width:100%; padding:15px; border-radius:12px; background:var(--accent); color:var(--primary-dark); font-weight:700; font-size:15px; }
+  .gate-note{ text-align:center; font-size:11.5px; color:#8C9CB6; margin-top:14px; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:18px 20px 14px; }
+  .brand{ display:flex; align-items:center; gap:9px; }
+  .brand-mark{ width:32px; height:32px; border-radius:9px; background:var(--primary); display:flex; align-items:center; justify-content:center; color:var(--accent); font-family:'Space Grotesk'; font-weight:700; font-size:14px; }
+  .brand-name{ font-family:'Space Grotesk'; font-weight:700; font-size:16.5px; }
+  .brand-name span{ color:var(--accent-dark); }
+  .icon-btn{ width:36px; height:36px; border-radius:10px; background:var(--card); display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow); font-size:15px; position:relative; }
+  .icon-btn .dot{ position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%; background:var(--danger); }
+  .topbar-right{ display:flex; gap:8px; align-items:center; }
+  .lang-pill{ font-size:11px; font-weight:600; padding:8px 10px; border-radius:20px; background:var(--card); box-shadow:var(--shadow); color:var(--primary); }
+  .screen-title{ font-size:15px; margin:0; font-weight:700; }
+
+  .content{ padding:0 20px; flex:1; }
+
+  .greeting{ font-size:13px; color:var(--ink-soft); margin:0 0 2px; }
+  .greeting b{ color:var(--ink); }
+  .streak-chip{ display:inline-flex; align-items:center; gap:5px; background:#FFF3E1; color:var(--accent-dark); padding:5px 10px; border-radius:20px; font-size:12px; font-weight:700; margin-top:8px; }
+  body[data-theme="dark"] .streak-chip{ background:#3A2C10; }
+
+  .hero{ margin-top:16px; border-radius:20px; padding:22px; background:linear-gradient(150deg, var(--primary) 0%, var(--primary-dark) 100%); color:#fff; position:relative; overflow:hidden; }
+  .hero::after{ content:""; position:absolute; right:-30px; top:-30px; width:140px; height:140px; background:radial-gradient(circle, rgba(232,163,61,.35), transparent 70%); }
+  .hero-eyebrow{ font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); font-weight:700; }
+  .hero h2{ font-size:21px; margin:6px 0 14px; line-height:1.25; position:relative; }
+  .hero-stats{ display:flex; gap:16px; margin-bottom:18px; position:relative; }
+  .hero-stat b{ display:block; font-family:'JetBrains Mono'; font-size:16px; }
+  .hero-stat span{ font-size:11px; color:#C7D2E4; }
+  .hero-cta{ width:100%; padding:14px; border-radius:12px; background:var(--accent); color:var(--primary-dark); font-weight:700; font-size:14.5px; letter-spacing:.02em; position:relative; }
+
+  .section-head{ display:flex; align-items:center; justify-content:space-between; margin:26px 0 12px; }
+  .section-head h3{ font-size:15.5px; margin:0; }
+  .section-head a{ font-size:12px; color:var(--primary); font-weight:600; }
+
+  .search-bar{ display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 14px; margin-top:16px; color:var(--ink-faint); font-size:13.5px; box-shadow:var(--shadow); width:100%; text-align:left; }
+
+  .tile-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tile{ background:var(--card); border-radius:14px; padding:14px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px; border:1px solid var(--line); text-align:left; }
+  .tile-icon{ font-size:19px; }
+  .tile b{ font-size:13px; line-height:1.3; }
+  .tile span{ font-size:11px; color:var(--ink-faint); }
+
+  .exam-row{ display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; margin-top:2px; scrollbar-width:none; }
+  .exam-row::-webkit-scrollbar{ display:none; }
+  .exam-chip{ flex:0 0 auto; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 16px; font-size:12.5px; font-weight:600; box-shadow:var(--shadow); white-space:nowrap; }
+
+  .continue-card{ display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; box-shadow:var(--shadow); }
+  .continue-card .bar{ width:100%; height:5px; border-radius:3px; background:var(--bg-alt); margin-top:8px; overflow:hidden; }
+  .continue-card .bar i{ display:block; height:100%; width:60%; background:var(--accent); }
+
+  .join-strip{ display:flex; gap:10px; margin-top:4px; }
+  .join-btn{ flex:1; text-align:center; padding:12px 8px; border-radius:12px; background:var(--card); border:1px solid var(--line); font-size:11.5px; font-weight:600; box-shadow:var(--shadow); }
+
+  .empty-note{ background:var(--card); border:1px dashed var(--line); border-radius:14px; padding:18px; text-align:center; color:var(--ink-faint); font-size:12.5px; margin-top:10px; }
+
+  .bottomnav{ position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; background:var(--card); border-top:1px solid var(--line); display:flex; padding:9px 6px calc(9px + env(safe-area-inset-bottom)); box-shadow:0 -4px 18px rgba(22,35,61,.06); z-index:20; }
+  .navitem{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; color:var(--ink-faint); font-size:10.5px; font-weight:600; padding:4px 0; }
+  .navitem .ic{ font-size:18px; }
+  .navitem.active{ color:var(--primary); }
+
+  .cat-block{ margin-bottom:22px; }
+  .cat-block h4{ font-size:13px; color:var(--ink-soft); margin:0 0 10px; text-transform:uppercase; letter-spacing:.04em; }
+  .sub-list{ display:flex; flex-direction:column; gap:8px; }
+  .sub-item{ display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 15px; box-shadow:var(--shadow); width:100%; text-align:left; }
+  .sub-item .left{ display:flex; align-items:center; gap:10px; }
+  .sub-item .ic{ width:34px; height:34px; border-radius:9px; background:var(--bg-alt); display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .sub-item b{ font-size:13.5px; }
+  .sub-item span{ font-size:11px; color:var(--ink-faint); display:block; }
+  .chev{ color:var(--ink-faint); }
+
+  .quiz-top{ padding:16px 20px 10px; }
+  .quiz-progress-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .quiz-progress-row b{ font-size:12.5px; font-family:'JetBrains Mono'; color:var(--ink-soft); }
+  .timer{ display:flex; align-items:center; gap:5px; font-family:'JetBrains Mono'; font-weight:700; font-size:13px; color:var(--danger); background:var(--danger-bg); padding:5px 10px; border-radius:20px; }
+  .progress-track{ height:6px; border-radius:4px; background:var(--bg-alt); overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--primary); border-radius:4px; transition:width .3s; }
+
+  .q-wrap{ padding:22px 20px 0; flex:1; }
+  .q-cat{ font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:.05em; }
+  .q-text{ font-size:18px; line-height:1.45; margin:8px 0 20px; font-weight:600; }
+
+  .opt{ display:flex; align-items:center; gap:12px; background:var(--card); border:1.5px solid var(--line); border-radius:13px; padding:14px 15px; margin-bottom:10px; font-size:14px; transition:.15s; text-align:left; width:100%; }
+  .opt .letter{ width:26px; height:26px; border-radius:8px; background:var(--bg-alt); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; font-family:'JetBrains Mono'; flex:0 0 auto; color:var(--ink-soft); }
+  .opt.correct{ border-color:var(--success); background:var(--success-bg); }
+  .opt.correct .letter{ background:var(--success); color:#fff; }
+  .opt.wrong{ border-color:var(--danger); background:var(--danger-bg); }
+  .opt.wrong .letter{ background:var(--danger); color:#fff; }
+
+  .q-actions{ display:flex; gap:10px; margin-top:6px; }
+  .q-actions button.icon-round{ width:44px; height:44px; border-radius:12px; background:var(--card); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow:var(--shadow); }
+  .q-actions button.icon-round.bookmarked{ background:#FFF3E1; border-color:var(--accent); color:var(--accent-dark); }
+
+  .explain-card{ margin:16px 20px 0; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow); animation:fadeIn .25s ease; }
+  .explain-tag{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; padding:4px 9px; border-radius:20px; margin-bottom:10px; }
+  .explain-tag.ok{ background:var(--success-bg); color:var(--success); }
+  .explain-tag.no{ background:var(--danger-bg); color:var(--danger); }
+  .explain-card h5{ margin:0 0 4px; font-size:13px; color:var(--ink-soft); }
+  .explain-card p{ margin:0 0 12px; font-size:13.5px; line-height:1.55; }
+  .fact-box{ background:var(--bg-alt); border-radius:10px; padding:11px 12px; font-size:12.5px; line-height:1.5; }
+  .fact-box b{ display:block; font-size:11px; color:var(--accent-dark); margin-bottom:3px; text-transform:uppercase; letter-spacing:.03em; }
+
+  .quiz-nav{ display:flex; gap:10px; padding:16px 20px 4px; }
+  .quiz-nav button{ flex:1; padding:14px; border-radius:12px; font-weight:700; font-size:14px; }
+  .btn-ghost{ background:var(--card); border:1px solid var(--line); color:var(--ink); }
+  .btn-primary{ background:var(--primary); color:#fff; }
+  .btn-primary:disabled{ opacity:.4; }
+
+  .result-wrap{ padding:20px; }
+  .result-head{ text-align:center; margin-bottom:18px; }
+  .result-head .big-emoji{ font-size:34px; }
+  .result-head h2{ font-size:19px; margin:6px 0 2px; }
+  .result-head p{ font-size:12.5px; color:var(--ink-soft); margin:0; }
+
+  .admit-card{ background:var(--card); border-radius:18px; box-shadow:var(--shadow); position:relative; border:1px solid var(--line); overflow:hidden; }
+  .admit-top{ background:var(--primary-dark); color:#fff; padding:16px 18px; display:flex; justify-content:space-between; align-items:center; }
+  .admit-top .label{ font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#A9B7CC; }
+  .admit-top .val{ font-family:'JetBrains Mono'; font-weight:700; font-size:13px; }
+  .admit-stamp{ width:46px; height:46px; border-radius:50%; border:2px dashed var(--accent); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:var(--accent); text-align:center; line-height:1.1; transform:rotate(-8deg); }
+  .perforation{ height:14px; background-image:radial-gradient(circle at 10px 0, var(--bg) 6px, transparent 6.5px); background-size:20px 14px; background-repeat:repeat-x; background-position:left top; }
+  .admit-score{ text-align:center; padding:20px 18px 6px; }
+  .admit-score .scoreval{ font-family:'JetBrains Mono'; font-size:40px; font-weight:700; color:var(--primary); }
+  .admit-score .scoreval span{ font-size:18px; color:var(--ink-faint); }
+  .admit-score .scorelbl{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .admit-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:0; border-top:1px dashed var(--line); margin-top:16px; }
+  .admit-grid div{ text-align:center; padding:14px 4px; border-right:1px dashed var(--line); }
+  .admit-grid div:last-child{ border-right:none; }
+  .admit-grid b{ display:block; font-family:'JetBrains Mono'; font-size:15px; }
+  .admit-grid span{ font-size:10px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.03em; }
+  .admit-foot{ display:flex; justify-content:space-between; padding:14px 18px 18px; }
+  .admit-foot div{ text-align:center; }
+  .admit-foot b{ display:block; font-family:'JetBrains Mono'; font-size:14px; color:var(--accent-dark); }
+  .admit-foot span{ font-size:10px; color:var(--ink-faint); text-transform:uppercase; }
+
+  .result-actions{ display:flex; flex-direction:column; gap:9px; margin-top:20px; }
+  .result-actions button{ padding:14px; border-radius:12px; font-weight:700; font-size:14px; }
+
+  .placeholder{ padding:60px 30px; text-align:center; }
+  .placeholder .ic{ font-size:34px; margin-bottom:10px; }
+  .placeholder h3{ font-size:16px; margin:0 0 6px; }
+  .placeholder p{ font-size:13px; color:var(--ink-soft); line-height:1.5; }
+  .phase-badge{ display:inline-block; margin-top:14px; font-size:11px; font-weight:700; background:var(--bg-alt); color:var(--ink-soft); padding:6px 12px; border-radius:20px; }
+
+  .ca-tabs{ display:flex; gap:7px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+  .ca-tabs::-webkit-scrollbar{ display:none; }
+  .ca-tab{ flex:0 0 auto; padding:8px 14px; border-radius:20px; font-size:12px; font-weight:600; background:var(--card); border:1px solid var(--line); color:var(--ink-soft); }
+  .ca-tab.active{ background:var(--primary); color:#fff; border-color:var(--primary); }
+  .ca-card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:15px; margin-top:12px; box-shadow:var(--shadow); }
+  .ca-cat-tag{ font-size:10.5px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:.04em; }
+  .ca-card h4{ font-size:14.5px; margin:6px 0 8px; line-height:1.35; }
+  .ca-card .row{ margin-bottom:8px; }
+  .ca-card .row b{ display:block; font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.03em; margin-bottom:2px; }
+  .ca-card .row p{ font-size:12.5px; line-height:1.55; margin:0; }
+  .ca-card .key-facts{ background:var(--bg-alt); border-radius:10px; padding:10px 12px; font-size:12px; line-height:1.7; }
+  .ca-mcq{ margin-top:10px; border-top:1px dashed var(--line); padding-top:10px; }
+  .ca-mcq-q{ font-size:12.5px; font-weight:600; margin-bottom:8px; }
+  .ca-mcq-opt{ display:block; width:100%; text-align:left; padding:9px 12px; border-radius:9px; border:1px solid var(--line); background:var(--bg); font-size:12px; margin-bottom:6px; }
+  .ca-mcq-opt.correct{ border-color:var(--success); background:var(--success-bg); }
+  .ca-mcq-opt.wrong{ border-color:var(--danger); background:var(--danger-bg); }
+  .bookmark-mini{ float:right; font-size:14px; }
+
+  .lb-tabs{ display:flex; gap:6px; background:var(--bg-alt); padding:4px; border-radius:12px; margin:4px 0 16px; }
+  .lb-tab{ flex:1; text-align:center; padding:8px 4px; border-radius:9px; font-size:11.5px; font-weight:600; color:var(--ink-soft); }
+  .lb-tab.active{ background:var(--card); color:var(--primary); box-shadow:var(--shadow); }
+  .lb-row{ display:flex; align-items:center; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:11px 14px; margin-bottom:8px; box-shadow:var(--shadow); }
+  .lb-row.me{ border-color:var(--accent); background:#FFF8EC; }
+  body[data-theme="dark"] .lb-row.me{ background:#2C230F; }
+  .lb-rank{ width:26px; font-family:'JetBrains Mono'; font-weight:700; font-size:13px; color:var(--ink-faint); text-align:center; }
+  .lb-rank.top{ color:var(--accent-dark); }
+  .lb-avatar{ width:34px; height:34px; border-radius:50%; background:var(--bg-alt); display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .lb-name{ flex:1; font-size:13px; font-weight:600; }
+  .lb-xp{ font-family:'JetBrains Mono'; font-size:12.5px; font-weight:700; color:var(--primary); }
+
+  .profile-head{ text-align:center; padding-top:6px; }
+  .profile-avatar{ width:72px; height:72px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk'; font-size:26px; font-weight:700; margin:0 auto 10px; }
+  .profile-head h2{ font-size:17px; margin:0 0 2px; }
+  .profile-level{ display:inline-block; font-size:11px; font-weight:700; color:var(--accent-dark); background:#FFF3E1; padding:4px 10px; border-radius:20px; margin-top:4px; }
+  body[data-theme="dark"] .profile-level{ background:#3A2C10; }
+  .xp-track{ height:8px; border-radius:5px; background:var(--bg-alt); overflow:hidden; margin-top:14px; }
+  .xp-track i{ display:block; height:100%; background:var(--accent); border-radius:5px; }
+  .xp-label{ display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); margin-top:4px; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:20px; }
+  .stat-card{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 6px; text-align:center; box-shadow:var(--shadow); }
+  .stat-card b{ display:block; font-family:'JetBrains Mono'; font-size:15px; }
+  .stat-card span{ font-size:9.5px; color:var(--ink-faint); text-transform:uppercase; }
+  .badge-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px; }
+  .badge{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 4px; text-align:center; box-shadow:var(--shadow); }
+  .badge.locked{ opacity:.38; }
+  .badge .ic{ font-size:20px; }
+  .badge span{ display:block; font-size:9px; margin-top:5px; font-weight:600; line-height:1.3; }
+  .profile-list-row{ display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .profile-list-row:last-child{ border-bottom:none; }
+
+  .settings-group{ margin-bottom:22px; }
+  .settings-group h4{ font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); margin:0 0 8px; }
+  .settings-row{ display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--line); padding:13px 15px; font-size:13.5px; }
+  .settings-row:first-child{ border-radius:12px 12px 0 0; }
+  .settings-row:last-child{ border-radius:0 0 12px 12px; border-top:none; }
+  .settings-row + .settings-row{ border-top:none; }
+  .settings-row .left{ display:flex; align-items:center; gap:10px; }
+  .toggle{ width:42px; height:24px; border-radius:20px; background:var(--bg-alt); position:relative; transition:.2s; flex:0 0 auto; }
+  .toggle.on{ background:var(--success); }
+  .toggle i{ position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#fff; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+  .toggle.on i{ left:20px; }
+  .theme-options{ display:flex; gap:8px; margin-top:6px; }
+  .theme-opt{ flex:1; text-align:center; padding:10px 4px; border-radius:10px; border:1.5px solid var(--line); font-size:11px; font-weight:600; background:var(--card); }
+  .theme-opt.active{ border-color:var(--primary); color:var(--primary); background:var(--bg-alt); }
+
+  .admin-tabs{ display:flex; gap:6px; background:var(--bg-alt); padding:4px; border-radius:12px; margin-bottom:16px; }
+  .admin-tab{ flex:1; text-align:center; padding:8px 4px; border-radius:9px; font-size:11px; font-weight:600; color:var(--ink-soft); }
+  .admin-tab.active{ background:var(--card); color:var(--primary); box-shadow:var(--shadow); }
+  .admin-stat-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+  .admin-stat{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center; box-shadow:var(--shadow); }
+  .admin-stat b{ display:block; font-family:'JetBrains Mono'; font-size:18px; color:var(--primary); }
+  .admin-stat span{ font-size:10px; color:var(--ink-faint); text-transform:uppercase; }
+  .admin-q-row{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:8px; box-shadow:var(--shadow); }
+  .admin-q-row .top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .admin-q-row p{ font-size:12.5px; margin:0; flex:1; }
+  .admin-q-actions{ display:flex; gap:6px; flex:0 0 auto; }
+  .admin-q-actions button{ width:26px; height:26px; border-radius:7px; background:var(--bg-alt); font-size:12px; }
+  .admin-q-row .meta{ font-size:10.5px; color:var(--ink-faint); margin-top:6px; }
+  .form-field{ margin-bottom:12px; }
+  .form-field label{ display:block; font-size:11.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; }
+  .form-field input, .form-field textarea, .form-field select{ width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); font-size:13px; }
+  .form-field textarea{ resize:vertical; min-height:50px; }
+  .form-row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  .search-input-wrap{ display:flex; align-items:center; gap:8px; background:var(--card); border:1.5px solid var(--primary); border-radius:12px; padding:12px 14px; margin:4px 0 16px; }
+  .search-input-wrap input{ border:none; outline:none; background:transparent; flex:1; font-size:14px; color:var(--ink); }
+  .search-result-group h4{ font-size:11px; text-transform:uppercase; color:var(--ink-faint); letter-spacing:.04em; margin:16px 0 8px; }
+
+  .toast{ position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:20px; font-size:12.5px; font-weight:600; z-index:200; opacity:0; pointer-events:none; transition:.25s; max-width:80%; text-align:center; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="lang-gate">
+    <div class="gate-wrap">
+      <div class="gate-mark">AQ</div>
+      <h1 id="gateTitle">Choose Your Language</h1>
+      <p class="sub" id="gateSub">You can change this anytime from Settings.</p>
+      <div id="langOptions"></div>
+      <button class="gate-cta" id="gateContinue">Continue</button>
+      <p class="gate-note">More Indian languages coming soon — বাংলা · اردو · मराठी · ગુજરાતી · தமிழ் · తెలుగు · ಕನ್ನಡ · മലയാളം · ਪੰਜਾਬੀ</p>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="topbar">
+      <div class="brand"><div class="brand-mark">AQ</div><div class="brand-name">AIEF <span>Quiz</span></div></div>
+      <div class="topbar-right">
+        <button class="lang-pill" id="langPillBtn">EN</button>
+        <button class="icon-btn" onclick="goTo('notifications')">🔔<span class="dot"></span></button>
+      </div>
+    </div>
+    <div class="content">
+      <p class="greeting" data-i18n="home.greeting">Good to see you, <b>Aspirant</b></p>
+      <div class="streak-chip">🔥 <span id="homeStreakText" data-i18n="home.streak">5-Day Streak</span></div>
+
+      <div class="hero">
+        <div class="hero-eyebrow" data-i18n="home.todaysChallenge">Today's Challenge</div>
+        <h2 data-i18n="home.heroTitle">10 Questions. Every second counts.</h2>
+        <div class="hero-stats">
+          <div class="hero-stat"><b>10</b><span data-i18n="home.questions">Questions</span></div>
+          <div class="hero-stat"><b>02:00</b><span data-i18n="home.duration">Duration</span></div>
+          <div class="hero-stat"><b>220</b><span data-i18n="home.points">Points</span></div>
+        </div>
+        <button class="hero-cta" id="startDailyBtn" data-i18n="home.startQuiz">START QUIZ</button>
+      </div>
+
+      <button class="search-bar" onclick="goTo('search')">🔍 <span data-i18n="home.search">Search questions, topics, exams…</span></button>
+
+      <div class="section-head"><h3 data-i18n="home.continue">Continue where you left off</h3></div>
+      <div class="continue-card">
+        <div><b style="font-size:13.5px" data-i18n="home.continueTitle">Indian Polity — Set 2</b><div class="bar"><i></i></div></div>
+        <button class="icon-btn" onclick="startQuiz('polity')">▶</button>
+      </div>
+
+      <div class="section-head"><h3 data-i18n="home.categories">Quiz Categories</h3><a href="#" onclick="goTo('categories');return false" data-i18n="home.viewAll">View all</a></div>
+      <div class="tile-grid" id="homeTiles"></div>
+
+      <div class="section-head"><h3 data-i18n="home.examZone">Exam Preparation</h3><a href="#" onclick="goTo('examzone');return false" data-i18n="home.viewAll">View all</a></div>
+      <div class="exam-row" id="examRow"></div>
+
+      <div class="section-head"><h3 data-i18n="home.joinUs">Join Us</h3></div>
+      <div class="join-strip">
+        <div class="join-btn">📸 Instagram</div>
+        <div class="join-btn">📢 Telegram</div>
+        <div class="join-btn">▶️ YouTube</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="screen" id="screen-categories">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('home')">←</button><h3 class="screen-title" data-i18n="cat.title">Quiz Categories</h3><button class="lang-pill" id="langPillBtn2">EN</button></div>
+    <div class="content"><div id="categoryBlocks"></div></div>
+  </div>
+
+  <!-- EXAM ZONE -->
+  <div class="screen" id="screen-examzone">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('home')">←</button><h3 class="screen-title" data-i18n="exam.title">Exam Preparation</h3><div style="width:36px"></div></div>
+    <div class="content"><div id="examBlocks"></div></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-top">
+      <div class="quiz-progress-row"><b id="qProgressLabel">Question 1 / 10</b><div class="timer">⏱ <span id="qTimer">00:12</span></div></div>
+      <div class="progress-track"><div class="progress-fill" id="qProgressFill" style="width:10%"></div></div>
+    </div>
+    <div class="q-wrap">
+      <div class="q-cat" id="qCategory">GENERAL KNOWLEDGE</div>
+      <div class="q-text" id="qText">Question text goes here</div>
+      <div id="qOptions"></div>
+      <div class="q-actions">
+        <button class="icon-round" id="bookmarkBtn" onclick="toggleBookmark()">🔖</button>
+        <button class="icon-round" onclick="reportQuestion(event)">🚩</button>
+      </div>
+    </div>
+    <div id="explainSlot"></div>
+    <div class="quiz-nav">
+      <button class="btn-ghost" id="prevBtn" onclick="prevQuestion()" data-i18n="quiz.prev">Previous</button>
+      <button class="btn-primary" id="nextBtn" onclick="nextQuestion()" disabled data-i18n="quiz.next">Next</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="screen-result">
+    <div class="content result-wrap">
+      <div class="result-head"><div class="big-emoji" id="resultEmoji">🏆</div><h2 data-i18n="result.title">Quiz Complete!</h2><p data-i18n="result.sub">Here's how you performed</p></div>
+      <div class="admit-card">
+        <div class="admit-top"><div><div class="label" data-i18n="result.candidate">CANDIDATE</div><div class="val" id="resultCandidate">ASPIRANT #04821</div></div><div class="admit-stamp">AIEF<br>QUIZ</div></div>
+        <div class="perforation"></div>
+        <div class="admit-score"><div class="scoreval" id="resultScore">8<span>/10</span></div><div class="scorelbl" data-i18n="result.score">SCORE</div></div>
+        <div class="admit-grid">
+          <div><b id="resAccuracy" style="color:var(--primary)">80%</b><span data-i18n="result.accuracy">Accuracy</span></div>
+          <div><b id="resCorrect" style="color:var(--success)">8</b><span data-i18n="result.correct">Correct</span></div>
+          <div><b id="resWrong" style="color:var(--danger)">2</b><span data-i18n="result.wrong">Wrong</span></div>
+          <div><b id="resTime">00:42</b><span data-i18n="result.time">Time</span></div>
+        </div>
+        <div class="admit-foot">
+          <div><b id="resXP">+164 XP</b><span data-i18n="result.xp">XP Earned</span></div>
+          <div><b id="resStreak">🔥 6 Days</b><span data-i18n="result.streak">Streak</span></div>
+          <div><b id="resRank">#128</b><span data-i18n="result.rank">Rank</span></div>
+        </div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-primary" onclick="goTo('review')" data-i18n="result.review">Review Answers</button>
+        <button class="btn-ghost" onclick="startQuiz(currentCategory)" data-i18n="result.retry">Try Again</button>
+        <button class="btn-ghost" onclick="goTo('home')" data-i18n="result.home">Back to Home</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEW -->
+  <div class="screen" id="screen-review">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('result')">←</button><h3 class="screen-title" data-i18n="review.title">Review Answers</h3><div style="width:36px"></div></div>
+    <div class="content" id="reviewList"></div>
+  </div>
+
+  <!-- CURRENT AFFAIRS -->
+  <div class="screen" id="screen-affairs">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('home')">←</button><h3 class="screen-title" data-i18n="ca.title">Current Affairs</h3><div style="width:36px"></div></div>
+    <div class="content">
+      <div class="ca-tabs" id="caTabs"></div>
+      <div id="caList"></div>
+    </div>
+  </div>
+
+  <!-- BOOKMARKS -->
+  <div class="screen" id="screen-bookmarks">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('profile')">←</button><h3 class="screen-title" data-i18n="bm.title">My Bookmarks</h3><div style="width:36px"></div></div>
+    <div class="content" id="bookmarksList"></div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="screen" id="screen-leaderboard">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('home')">←</button><h3 class="screen-title" data-i18n="lb.title">Leaderboard</h3><div style="width:36px"></div></div>
+    <div class="content">
+      <div class="lb-tabs" id="lbTabs"></div>
+      <div id="lbList"></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="screen-profile">
+    <div class="topbar"><div style="width:36px"></div><h3 class="screen-title" data-i18n="prof.title">Profile</h3><button class="icon-btn" onclick="goTo('settings')">⚙️</button></div>
+    <div class="content">
+      <div class="profile-head">
+        <div class="profile-avatar" id="profAvatar">A</div>
+        <h2 id="profName">Aspirant</h2>
+        <div class="profile-level" id="profLevel">Learner · Level 3</div>
+        <div class="xp-track"><i id="profXPBar" style="width:40%"></i></div>
+        <div class="xp-label"><span id="profXPNow">640 XP</span><span id="profXPNext">Next: 1000 XP</span></div>
+      </div>
+      <div class="stat-grid" id="profStats"></div>
+      <div class="section-head"><h3 data-i18n="prof.badges">Badges</h3></div>
+      <div class="badge-grid" id="badgeGrid"></div>
+      <div class="section-head"><h3 data-i18n="prof.more">More</h3></div>
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 15px;box-shadow:var(--shadow)">
+        <button class="profile-list-row" style="width:100%" onclick="goTo('bookmarks')"><span data-i18n="prof.bookmarks">🔖 My Bookmarks</span><span class="chev">›</span></button>
+        <button class="profile-list-row" style="width:100%" onclick="goTo('history')"><span data-i18n="prof.history">🕘 Quiz History</span><span class="chev">›</span></button>
+        <button class="profile-list-row" style="width:100%" onclick="goTo('settings')"><span data-i18n="prof.settings">⚙️ Settings</span><span class="chev">›</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ HISTORY -->
+  <div class="screen" id="screen-history">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('profile')">←</button><h3 class="screen-title" data-i18n="hist.title">Quiz History</h3><div style="width:36px"></div></div>
+    <div class="content" id="historyList"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="screen-settings">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('profile')">←</button><h3 class="screen-title" data-i18n="set.title">Settings</h3><div style="width:36px"></div></div>
+    <div class="content">
+      <div class="settings-group">
+        <h4 data-i18n="set.signin">Account</h4>
+        <div id="authGroup"></div>
+      </div>
+      <div class="settings-group">
+        <h4 data-i18n="set.language">Language</h4>
+        <div id="settingsLangOptions"></div>
+      </div>
+      <div class="settings-group">
+        <h4 data-i18n="set.appearance">Appearance</h4>
+        <div class="theme-options" id="themeOptions"></div>
+      </div>
+      <div class="settings-group">
+        <h4 data-i18n="set.prefs">Preferences</h4>
+        <div>
+          <div class="settings-row"><span class="left" data-i18n="set.notifications">🔔 Notifications</span><div class="toggle on" id="toggleNotif" onclick="toggleSetting('notif')"><i></i></div></div>
+          <div class="settings-row"><span class="left" data-i18n="set.sound">🔊 Sound</span><div class="toggle on" id="toggleSound" onclick="toggleSetting('sound')"><i></i></div></div>
+          <div class="settings-row"><span class="left" data-i18n="set.haptic">📳 Haptic Feedback</span><div class="toggle on" id="toggleHaptic" onclick="toggleSetting('haptic')"><i></i></div></div>
+        </div>
+      </div>
+      <div class="settings-group">
+        <h4 data-i18n="set.more">More</h4>
+        <div>
+          <div class="settings-row"><span class="left" data-i18n="set.privacy">🔒 Privacy</span><span class="chev">›</span></div>
+          <div class="settings-row"><span class="left" data-i18n="set.help">❓ Help & Support</span><span class="chev">›</span></div>
+          <div class="settings-row"><span class="left" data-i18n="set.about">ℹ️ About Us</span><span class="chev">›</span></div>
+        </div>
+      </div>
+      <div class="settings-group" id="adminSettingsGroup" style="display:none">
+        <h4 data-i18n="set.admin">Administration</h4>
+        <div><button class="settings-row" style="width:100%" onclick="goTo('admin')"><span class="left" data-i18n="set.adminRow">🛠️ Admin Panel</span><span class="chev">›</span></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="screen" id="screen-notifications">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('home')">←</button><h3 class="screen-title" data-i18n="notif.title">Notifications</h3><div style="width:36px"></div></div>
+    <div class="content" id="notifList"></div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="screen" id="screen-search">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('home')">←</button><h3 class="screen-title" data-i18n="search.title">Search</h3><div style="width:36px"></div></div>
+    <div class="content">
+      <div class="search-input-wrap">🔍<input id="searchInput" oninput="runSearch()" data-i18n-ph="home.search" placeholder="Search questions, topics, exams…"></div>
+      <div id="searchResults"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="screen" id="screen-admin">
+    <div class="topbar"><button class="icon-btn" onclick="goTo('settings')">←</button><h3 class="screen-title" data-i18n="admin.title">Admin Panel</h3><div style="width:36px"></div></div>
+    <div class="content">
+      <div class="admin-stat-row">
+        <div class="admin-stat"><b id="adminStatQ">0</b><span data-i18n="admin.questions">Questions</span></div>
+        <div class="admin-stat"><b id="adminStatC">12</b><span data-i18n="admin.categories">Categories</span></div>
+        <div class="admin-stat"><b id="adminStatU">2,481</b><span data-i18n="admin.users">Users</span></div>
+      </div>
+      <div id="adminModeBanner" class="empty-note" style="margin-bottom:14px"></div>
+      <div class="admin-tabs">
+        <button class="admin-tab active" id="adminTabQ" onclick="setAdminTab('questions')" data-i18n="admin.tabQuestions">Questions</button>
+        <button class="admin-tab" id="adminTabA" onclick="setAdminTab('add')" data-i18n="admin.tabAdd">Add New</button>
+        <button class="admin-tab" id="adminTabC" onclick="setAdminTab('cats')" data-i18n="admin.tabCats">Categories</button>
+        <button class="admin-tab" id="adminTabS" onclick="setAdminTab('stats')" data-i18n="admin.tabStats">Stats</button>
+      </div>
+      <div id="adminQuestionsPane"><div id="adminQList"></div></div>
+      <div id="adminAddPane" style="display:none">
+        <div class="form-row2">
+          <div class="form-field"><label data-i18n="admin.qEn">Question (English)</label><input id="afQEn" placeholder="Enter question in English"></div>
+          <div class="form-field"><label data-i18n="admin.qHi">Question (Hindi)</label><input id="afQHi" placeholder="प्रश्न हिन्दी में लिखें"></div>
+        </div>
+        <div class="form-field"><label data-i18n="admin.category">Category</label><select id="afCat"></select></div>
+        <div class="form-row2">
+          <div class="form-field"><label>Option A (EN)</label><input id="afOA_en"></div>
+          <div class="form-field"><label>Option A (HI)</label><input id="afOA_hi"></div>
+        </div>
+        <div class="form-row2">
+          <div class="form-field"><label>Option B (EN)</label><input id="afOB_en"></div>
+          <div class="form-field"><label>Option B (HI)</label><input id="afOB_hi"></div>
+        </div>
+        <div class="form-row2">
+          <div class="form-field"><label>Option C (EN)</label><input id="afOC_en"></div>
+          <div class="form-field"><label>Option C (HI)</label><input id="afOC_hi"></div>
+        </div>
+        <div class="form-row2">
+          <div class="form-field"><label>Option D (EN)</label><input id="afOD_en"></div>
+          <div class="form-field"><label>Option D (HI)</label><input id="afOD_hi"></div>
+        </div>
+        <div class="form-field"><label data-i18n="admin.correct">Correct Option</label><select id="afCorrect"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></div>
+        <div class="form-row2">
+          <div class="form-field"><label>Explanation (EN)</label><textarea id="afExEn"></textarea></div>
+          <div class="form-field"><label>Explanation (HI)</label><textarea id="afExHi"></textarea></div>
+        </div>
+        <button class="btn-primary" style="width:100%;padding:14px;border-radius:12px;margin-top:4px" onclick="adminAddQuestion()" data-i18n="admin.save">Save Question</button>
+      </div>
+      <div id="adminCatsPane" style="display:none">
+        <div class="section-head" style="margin-top:0"><h3 data-i18n="admin.groups">Exam Groups</h3></div>
+        <div id="adminGroupsList"></div>
+        <div class="form-row2" style="margin-top:14px">
+          <div class="form-field"><label data-i18n="admin.groupNameEn">Group name (English)</label><input id="agNameEn" placeholder="e.g. Scholarship Exams"></div>
+          <div class="form-field"><label data-i18n="admin.groupNameHi">Group name (Hindi)</label><input id="agNameHi" placeholder="जैसे छात्रवृत्ति परीक्षा"></div>
+        </div>
+        <button class="btn-ghost" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--line)" onclick="adminAddGroup()" data-i18n="admin.addGroup">Add Group</button>
+
+        <div class="section-head"><h3 data-i18n="admin.subcats">Sub-categories</h3></div>
+        <div id="adminSubcatsList"></div>
+        <div class="form-field" style="margin-top:14px"><label data-i18n="admin.selectGroup">Select group</label><select id="asGroup"></select></div>
+        <div class="form-row2">
+          <div class="form-field"><label data-i18n="admin.subcatNameEn">Sub-category name (English)</label><input id="asNameEn" placeholder="e.g. Reasoning"></div>
+          <div class="form-field"><label data-i18n="admin.subcatNameHi">Sub-category name (Hindi)</label><input id="asNameHi" placeholder="जैसे तर्कशक्ति"></div>
+        </div>
+        <button class="btn-primary" style="width:100%;padding:14px;border-radius:12px;margin-top:4px" onclick="adminAddSubcat()" data-i18n="admin.addSubcat">Add Sub-category</button>
+      </div>
+      <div id="adminStatsPane" style="display:none">
+        <div class="empty-note" data-i18n="admin.statsNote">Detailed question-performance and user-analytics charts will connect to live data once the backend ships.</div>
+        <div class="section-head" style="margin-top:20px"><h3 data-i18n="admin.access">Admin Access</h3></div>
+        <div class="empty-note" data-i18n="admin.accessNote">The first Google account to sign in becomes admin automatically. Any existing admin can add more admins here by email.</div>
+        <div id="adminAccessList" style="margin-top:12px"></div>
+        <div class="form-row2" style="margin-top:10px">
+          <div class="form-field" style="grid-column:1/3"><label data-i18n="admin.addAdmin">Add admin by email</label><input id="adminNewEmail" placeholder="name@gmail.com"></div>
+        </div>
+        <button class="btn-ghost" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--line)" onclick="adminAddAdmin()" data-i18n="admin.addAdmin">Add admin by email</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottomnav" id="bottomNav">
+    <button class="navitem active" data-screen="home" onclick="goTo('home')"><span class="ic">🏠</span><span data-i18n="nav.home">Home</span></button>
+    <button class="navitem" data-screen="categories" onclick="goTo('categories')"><span class="ic">📚</span><span data-i18n="nav.quiz">Quiz</span></button>
+    <button class="navitem" data-screen="affairs" onclick="goTo('affairs')"><span class="ic">📰</span><span data-i18n="nav.affairs">Affairs</span></button>
+    <button class="navitem" data-screen="leaderboard" onclick="goTo('leaderboard')"><span class="ic">🏆</span><span data-i18n="nav.leader">Leaders</span></button>
+    <button class="navitem" data-screen="profile" onclick="goTo('profile')"><span class="ic">👤</span><span data-i18n="nav.profile">Profile</span></button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<!-- Firebase (Auth + Firestore) — compat SDK, easiest to wire into a single-file prototype -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ============================================================
+   AIEF QUIZ — full prototype (Phase 1-4 UI + Firebase backend)
+   ============================================================ */
+
+/* ---------------------------------------------------------------
+   FIREBASE SETUP — REQUIRED STEP BEFORE THIS GOES LIVE
+   1. Go to https://console.firebase.google.com → create a project.
+   2. Project Settings → General → "Your apps" → add a Web app →
+      copy the config object it gives you into firebaseConfig below.
+   3. Build → Authentication → Sign-in method → enable "Google".
+   4. Build → Firestore Database → Create database (production mode
+      is fine — this file's rules below only need read for everyone
+      and write for signed-in admins; set that in the Firestore
+      "Rules" tab).
+   Until you do this, apiKey stays "YOUR_API_KEY" below and the app
+   automatically runs in local demo mode: quizzes work exactly as
+   before, but sign-in and admin changes only live in this browser
+   tab and reset on refresh.
+--------------------------------------------------------------- */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+let firebaseReady = false;
+let auth = null, db = null;
+try{
+  if(firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("YOUR_") !== 0){
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    firebaseReady = true;
+  }
+}catch(e){ console.warn("Firebase not configured:", e); firebaseReady = false; }
+
+const I18N = {
+  en: {
+    "home.greeting":"Good to see you, <b>Aspirant</b>","home.streak":"5-Day Streak",
+    "home.todaysChallenge":"Today's Challenge","home.heroTitle":"10 Questions. Every second counts.",
+    "home.questions":"Questions","home.duration":"Duration","home.points":"Points","home.startQuiz":"START QUIZ",
+    "home.search":"Search questions, topics, exams…","home.continue":"Continue where you left off",
+    "home.continueTitle":"Indian Polity — Set 2","home.categories":"Quiz Categories","home.viewAll":"View all",
+    "home.examZone":"Exam Preparation","home.joinUs":"Join Us",
+    "cat.title":"Quiz Categories","exam.title":"Exam Preparation",
+    "quiz.prev":"Previous","quiz.next":"Next","quiz.submit":"See Result",
+    "result.title":"Quiz Complete!","result.sub":"Here's how you performed","result.candidate":"CANDIDATE",
+    "result.score":"SCORE","result.accuracy":"Accuracy","result.correct":"Correct","result.wrong":"Wrong","result.time":"Time",
+    "result.xp":"XP Earned","result.streak":"Streak","result.rank":"Rank",
+    "result.review":"Review Answers","result.retry":"Try Again","result.home":"Back to Home",
+    "review.title":"Review Answers","ca.title":"Current Affairs","bm.title":"My Bookmarks","lb.title":"Leaderboard",
+    "prof.title":"Profile","prof.badges":"Badges","prof.more":"More","prof.bookmarks":"🔖 My Bookmarks",
+    "prof.history":"🕘 Quiz History","prof.settings":"⚙️ Settings","hist.title":"Quiz History",
+    "set.title":"Settings","set.language":"Language","set.appearance":"Appearance","set.prefs":"Preferences",
+    "set.notifications":"🔔 Notifications","set.sound":"🔊 Sound","set.haptic":"📳 Haptic Feedback",
+    "set.signin":"Account","set.more":"More","set.privacy":"🔒 Privacy","set.help":"❓ Help & Support",
+    "set.about":"ℹ️ About Us","set.admin":"Administration","set.adminRow":"🛠️ Admin Panel",
+    "notif.title":"Notifications","search.title":"Search",
+    "admin.title":"Admin Panel","admin.questions":"Questions","admin.categories":"Categories","admin.users":"Users",
+    "admin.tabQuestions":"Questions","admin.tabAdd":"Add New","admin.tabCats":"Categories","admin.tabStats":"Stats","admin.qEn":"Question (English)",
+    "admin.qHi":"Question (Hindi)","admin.category":"Category","admin.correct":"Correct Option","admin.save":"Save Question",
+    "admin.statsNote":"Detailed question-performance and user-analytics charts will connect to live data once the backend ships.",
+    "admin.groups":"Exam Groups","admin.addGroup":"Add Group","admin.groupNameEn":"Group name (English)","admin.groupNameHi":"Group name (Hindi)",
+    "admin.subcats":"Sub-categories","admin.addSubcat":"Add Sub-category","admin.subcatNameEn":"Sub-category name (English)","admin.subcatNameHi":"Sub-category name (Hindi)",
+    "admin.selectGroup":"Select group","admin.access":"Admin Access","admin.accessNote":"The first Google account to sign in becomes admin automatically. Any existing admin can add more admins here by email.",
+    "admin.addAdmin":"Add admin by email","admin.mode.live":"Connected to Firebase — changes sync live","admin.mode.local":"Local demo mode — changes only live in this browser tab (add your Firebase config to go live)",
+    "auth.signin":"Continue with Google","auth.signout":"Sign out","auth.signedInAs":"Signed in as","auth.admin":"Admin","auth.notConfigured":"Firebase isn't configured yet in this file — add your project's config near the top of the script to enable real sign-in.",
+    "nav.home":"Home","nav.quiz":"Quiz","nav.affairs":"Affairs","nav.leader":"Leaders","nav.profile":"Profile",
+    "explain.correct":"Correct Answer","explain.incorrect":"Not Quite","explain.explanation":"Explanation","explain.fact":"Did You Know?",
+    "toast.bookmarked":"Saved to bookmarks","toast.unbookmarked":"Removed from bookmarks","toast.reported":"Question reported — thank you",
+    "toast.theme":"Theme updated","toast.added":"Question added to bank","noresults":"No results found.","empty.bookmarks":"You haven't bookmarked anything yet.",
+    "empty.history":"Your completed quizzes will show up here.","toast.adminOnly":"Admin access only — sign in with an admin account",
+    "toast.groupAdded":"Group added","toast.subcatAdded":"Sub-category added","toast.adminAdded":"Admin added"
+  },
+  hi: {
+    "home.greeting":"नमस्ते, <b>अभ्यर्थी</b>","home.streak":"5-दिन की स्ट्रीक",
+    "home.todaysChallenge":"आज की चुनौती","home.heroTitle":"10 प्रश्न। हर सेकंड मायने रखता है।",
+    "home.questions":"प्रश्न","home.duration":"समय","home.points":"अंक","home.startQuiz":"क्विज़ शुरू करें",
+    "home.search":"प्रश्न, विषय, परीक्षा खोजें…","home.continue":"जहाँ छोड़ा था वहीं से जारी रखें",
+    "home.continueTitle":"भारतीय राजव्यवस्था — सेट 2","home.categories":"क्विज़ श्रेणियाँ","home.viewAll":"सभी देखें",
+    "home.examZone":"परीक्षा तैयारी","home.joinUs":"हमसे जुड़ें",
+    "cat.title":"क्विज़ श्रेणियाँ","exam.title":"परीक्षा तैयारी",
+    "quiz.prev":"पिछला","quiz.next":"अगला","quiz.submit":"परिणाम देखें",
+    "result.title":"क्विज़ पूर्ण!","result.sub":"आपका प्रदर्शन इस प्रकार रहा","result.candidate":"अभ्यर्थी",
+    "result.score":"स्कोर","result.accuracy":"सटीकता","result.correct":"सही","result.wrong":"गलत","result.time":"समय",
+    "result.xp":"अर्जित XP","result.streak":"स्ट्रीक","result.rank":"रैंक",
+    "result.review":"उत्तर देखें","result.retry":"फिर से प्रयास करें","result.home":"होम पर जाएँ",
+    "review.title":"उत्तर समीक्षा","ca.title":"करेंट अफेयर्स","bm.title":"मेरे बुकमार्क","lb.title":"लीडरबोर्ड",
+    "prof.title":"प्रोफ़ाइल","prof.badges":"बैज","prof.more":"अधिक","prof.bookmarks":"🔖 मेरे बुकमार्क",
+    "prof.history":"🕘 क्विज़ इतिहास","prof.settings":"⚙️ सेटिंग्स","hist.title":"क्विज़ इतिहास",
+    "set.title":"सेटिंग्स","set.language":"भाषा","set.appearance":"रूप","set.prefs":"प्राथमिकताएँ",
+    "set.notifications":"🔔 सूचनाएँ","set.sound":"🔊 ध्वनि","set.haptic":"📳 हैप्टिक फीडबैक",
+    "set.signin":"खाता","set.more":"अधिक","set.privacy":"🔒 गोपनीयता","set.help":"❓ सहायता",
+    "set.about":"ℹ️ हमारे बारे में","set.admin":"प्रशासन","set.adminRow":"🛠️ एडमिन पैनल",
+    "notif.title":"सूचनाएँ","search.title":"खोजें",
+    "admin.title":"एडमिन पैनल","admin.questions":"प्रश्न","admin.categories":"श्रेणियाँ","admin.users":"उपयोगकर्ता",
+    "admin.tabQuestions":"प्रश्न","admin.tabAdd":"नया जोड़ें","admin.tabCats":"श्रेणियाँ","admin.tabStats":"आँकड़े","admin.qEn":"प्रश्न (अंग्रेज़ी)",
+    "admin.qHi":"प्रश्न (हिन्दी)","admin.category":"श्रेणी","admin.correct":"सही विकल्प","admin.save":"प्रश्न सहेजें",
+    "admin.statsNote":"बैकएंड तैयार होने पर विस्तृत प्रश्न-प्रदर्शन और उपयोगकर्ता विश्लेषण चार्ट यहाँ जुड़ेंगे।",
+    "admin.groups":"परीक्षा समूह","admin.addGroup":"समूह जोड़ें","admin.groupNameEn":"समूह नाम (अंग्रेज़ी)","admin.groupNameHi":"समूह नाम (हिन्दी)",
+    "admin.subcats":"उप-श्रेणियाँ","admin.addSubcat":"उप-श्रेणी जोड़ें","admin.subcatNameEn":"उप-श्रेणी नाम (अंग्रेज़ी)","admin.subcatNameHi":"उप-श्रेणी नाम (हिन्दी)",
+    "admin.selectGroup":"समूह चुनें","admin.access":"एडमिन एक्सेस","admin.accessNote":"साइन इन करने वाला पहला गूगल खाता स्वतः एडमिन बन जाता है। कोई भी मौजूदा एडमिन यहाँ ईमेल से और एडमिन जोड़ सकता है।",
+    "admin.addAdmin":"ईमेल से एडमिन जोड़ें","admin.mode.live":"Firebase से जुड़ा है — बदलाव लाइव सिंक होते हैं","admin.mode.local":"लोकल डेमो मोड — बदलाव केवल इस ब्राउज़र टैब में रहते हैं (लाइव करने के लिए स्क्रिप्ट में अपना Firebase config जोड़ें)",
+    "auth.signin":"गूगल से जारी रखें","auth.signout":"साइन आउट","auth.signedInAs":"इस रूप में साइन इन:","auth.admin":"एडमिन","auth.notConfigured":"इस फ़ाइल में Firebase अभी कॉन्फ़िगर नहीं है — असली साइन-इन सक्षम करने के लिए स्क्रिप्ट के ऊपर अपना प्रोजेक्ट config जोड़ें।",
+    "nav.home":"होम","nav.quiz":"क्विज़","nav.affairs":"अफेयर्स","nav.leader":"लीडर्स","nav.profile":"प्रोफ़ाइल",
+    "explain.correct":"सही उत्तर","explain.incorrect":"गलत उत्तर","explain.explanation":"व्याख्या","explain.fact":"क्या आप जानते हैं?",
+    "toast.bookmarked":"बुकमार्क में सहेजा गया","toast.unbookmarked":"बुकमार्क से हटाया गया","toast.reported":"प्रश्न रिपोर्ट किया गया — धन्यवाद",
+    "toast.theme":"थीम अपडेट हुई","toast.added":"प्रश्न जोड़ा गया","noresults":"कोई परिणाम नहीं मिला।","empty.bookmarks":"आपने अभी तक कुछ भी बुकमार्क नहीं किया है।",
+    "empty.history":"आपके पूर्ण किए गए क्विज़ यहाँ दिखेंगे।","toast.adminOnly":"केवल एडमिन एक्सेस — एडमिन खाते से साइन इन करें",
+    "toast.groupAdded":"समूह जोड़ा गया","toast.subcatAdded":"उप-श्रेणी जोड़ी गई","toast.adminAdded":"एडमिन जोड़ा गया"
+  }
+};
+
+// Category groups are themselves admin-manageable (add/rename/delete from the Admin Panel).
+let CATEGORY_GROUPS = [
+  {id:"government", en:"Government Jobs Exam", hi:"सरकारी नौकरी परीक्षा"},
+  {id:"entrance", en:"Entrance Examination", hi:"प्रवेश परीक्षा"},
+  {id:"board", en:"Board Examination", hi:"बोर्ड परीक्षा"}
+];
+
+// Sub-categories are admin-manageable too; each belongs to one group via `group`.
+let CATEGORIES = [
+  {id:"gk", icon:"🧠", en:"General Knowledge", hi:"सामान्य ज्ञान", group:"government"},
+  {id:"affairs", icon:"📰", en:"Current Affairs", hi:"करेंट अफेयर्स", group:"government"},
+  {id:"history", icon:"🏛️", en:"History", hi:"इतिहास", group:"government"},
+  {id:"geo", icon:"🌍", en:"Geography", hi:"भूगोल", group:"government"},
+  {id:"polity", icon:"⚖️", en:"Indian Polity", hi:"भारतीय राजव्यवस्था", group:"government"},
+  {id:"economy", icon:"💹", en:"Economy", hi:"अर्थव्यवस्था", group:"government"},
+  {id:"science", icon:"🔬", en:"Science", hi:"विज्ञान", group:"government"},
+  {id:"sports", icon:"🏅", en:"Sports", hi:"खेल", group:"government"},
+  {id:"env", icon:"🌱", en:"Environment", hi:"पर्यावरण", group:"government"},
+  {id:"world", icon:"🌐", en:"World GK", hi:"विश्व सामान्य ज्ञान", group:"government"},
+  {id:"defence", icon:"🛡️", en:"Defence", hi:"रक्षा", group:"government"},
+  {id:"awards", icon:"🏆", en:"Awards & Honours", hi:"पुरस्कार व सम्मान", group:"government"},
+  {id:"entEngineering", icon:"⚙️", en:"Engineering Entrance", hi:"इंजीनियरिंग प्रवेश", group:"entrance"},
+  {id:"entMedical", icon:"🩺", en:"Medical Entrance", hi:"मेडिकल प्रवेश", group:"entrance"},
+  {id:"entLaw", icon:"⚖️", en:"Law Entrance", hi:"लॉ प्रवेश", group:"entrance"},
+  {id:"entAptitude", icon:"🧩", en:"General Aptitude & Reasoning", hi:"सामान्य योग्यता व तर्क", group:"entrance"},
+  {id:"board10Sci", icon:"🔬", en:"Class 10 — Science", hi:"कक्षा 10 — विज्ञान", group:"board"},
+  {id:"board10SSt", icon:"🌍", en:"Class 10 — Social Science", hi:"कक्षा 10 — सामाजिक विज्ञान", group:"board"},
+  {id:"board12Com", icon:"💹", en:"Class 12 — Commerce", hi:"कक्षा 12 — वाणिज्य", group:"board"},
+  {id:"board12Hum", icon:"📖", en:"Class 12 — Humanities", hi:"कक्षा 12 — मानविकी", group:"board"}
+];
+
+const EXAMS = [
+  {id:"upsc", en:"UPSC", hi:"यूपीएससी"},{id:"ssc", en:"SSC", hi:"एसएससी"},{id:"banking", en:"Banking", hi:"बैंकिंग"},
+  {id:"railway", en:"Railway", hi:"रेलवे"},{id:"defence", en:"Defence", hi:"रक्षा"},{id:"cuet", en:"CUET", hi:"सीयूईटी"},
+  {id:"statepsc", en:"State PSC", hi:"राज्य पीएससी"}
+];
+const EXAM_SUBS = [
+  {icon:"📝", en:"Practice Quiz", hi:"अभ्यास क्विज़", live:true},
+  {icon:"📄", en:"Previous Year Questions", hi:"पिछले वर्ष के प्रश्न", live:false},
+  {icon:"🧪", en:"Mock Test", hi:"मॉक टेस्ट", live:false},
+  {icon:"📰", en:"Current Affairs", hi:"करेंट अफेयर्स", live:false},
+  {icon:"📌", en:"Topic-wise Quiz", hi:"विषयवार क्विज़", live:false}
+];
+
+function mkQ(qEn,qHi,oEn,oHi,correct,exEn,exHi,fEn,fHi){
+  return {q:{en:qEn,hi:qHi}, opts:{en:oEn,hi:oHi}, correct, explain:{en:exEn,hi:exHi}, fact:{en:fEn,hi:fHi}};
+}
+
+const QUESTIONS = {
+  gk: [
+    mkQ("Who is known as the 'Missile Man of India'?","'भारत के मिसाइल मैन' के नाम से किसे जाना जाता है?",
+      ["Homi J. Bhabha","A.P.J. Abdul Kalam","Vikram Sarabhai","C.V. Raman"],["होमी जे. भाभा","ए.पी.जे. अब्दुल कलाम","विक्रम साराभाई","सी.वी. रमन"],1,
+      "Dr. A.P.J. Abdul Kalam led India's missile development programmes, including Agni and Prithvi.","डॉ. ए.पी.जे. अब्दुल कलाम ने अग्नि और पृथ्वी सहित भारत के मिसाइल विकास कार्यक्रमों का नेतृत्व किया।",
+      "Kalam later served as the 11th President of India (2002–2007).","कलाम बाद में भारत के 11वें राष्ट्रपति (2002–2007) रहे।"),
+    mkQ("Which is the longest river in India?","भारत की सबसे लंबी नदी कौन सी है?",
+      ["Yamuna","Godavari","Ganga","Brahmaputra"],["यमुना","गोदावरी","गंगा","ब्रह्मपुत्र"],2,
+      "The Ganga flows about 2,525 km through India before joining the Bay of Bengal.","गंगा भारत में लगभग 2,525 किमी बहने के बाद बंगाल की खाड़ी में मिलती है।",
+      "The Ganga basin supports roughly 40% of India's population.","गंगा बेसिन भारत की लगभग 40% जनसंख्या का भरण-पोषण करता है।"),
+    mkQ("The Reserve Bank of India was established in which year?","भारतीय रिज़र्व बैंक की स्थापना किस वर्ष हुई थी?",
+      ["1935","1947","1950","1926"],["1935","1947","1950","1926"],0,
+      "RBI was established on 1 April 1935 under the Reserve Bank of India Act, 1934.","आरबीआई की स्थापना 1 अप्रैल 1935 को भारतीय रिज़र्व बैंक अधिनियम, 1934 के तहत हुई थी।",
+      "RBI was nationalised in 1949, a year after India's independence.","आरबीआई का राष्ट्रीयकरण 1949 में, भारत की स्वतंत्रता के एक वर्ष बाद हुआ।"),
+    mkQ("Which Article of the Indian Constitution abolishes untouchability?","भारतीय संविधान का कौन सा अनुच्छेद अस्पृश्यता को समाप्त करता है?",
+      ["Article 14","Article 17","Article 21","Article 32"],["अनुच्छेद 14","अनुच्छेद 17","अनुच्छेद 21","अनुच्छेद 32"],1,
+      "Article 17 abolishes untouchability and forbids its practice in any form.","अनुच्छेद 17 अस्पृश्यता को समाप्त करता है और इसके किसी भी रूप में अभ्यास को प्रतिबंधित करता है।",
+      "Article 17 falls under the Fundamental Rights, Part III of the Constitution.","अनुच्छेद 17 संविधान के भाग III, मौलिक अधिकारों के अंतर्गत आता है।"),
+    mkQ("Which gas makes up the largest share of Earth's atmosphere?","पृथ्वी के वायुमंडल में सबसे अधिक भाग किस गैस का है?",
+      ["Oxygen","Carbon Dioxide","Nitrogen","Argon"],["ऑक्सीजन","कार्बन डाइऑक्साइड","नाइट्रोजन","आर्गन"],2,
+      "Nitrogen makes up about 78% of the atmosphere, with oxygen at roughly 21%.","वायुमंडल का लगभग 78% भाग नाइट्रोजन है, जबकि ऑक्सीजन लगभग 21% है।",
+      "Argon, at under 1%, is still the third most abundant atmospheric gas.","आर्गन, 1% से कम होने पर भी, वायुमंडल की तीसरी सबसे प्रचुर गैस है।")
+  ],
+  history: [
+    mkQ("Who founded the Mauryan Empire?","मौर्य साम्राज्य की स्थापना किसने की थी?",
+      ["Ashoka","Chandragupta Maurya","Bindusara","Samudragupta"],["अशोक","चंद्रगुप्त मौर्य","बिंदुसार","समुद्रगुप्त"],1,
+      "Chandragupta Maurya founded the Mauryan Empire around 321 BCE with Chanakya's guidance.","चंद्रगुप्त मौर्य ने चाणक्य के मार्गदर्शन में लगभग 321 ईसा पूर्व मौर्य साम्राज्य की स्थापना की।",
+      "His grandson Ashoka later expanded the empire and embraced Buddhism after the Kalinga war.","उनके पौत्र अशोक ने बाद में साम्राज्य का विस्तार किया और कलिंग युद्ध के बाद बौद्ध धर्म अपनाया।"),
+    mkQ("The Quit India Movement was launched in which year?","भारत छोड़ो आंदोलन किस वर्ष शुरू हुआ था?",
+      ["1930","1942","1947","1935"],["1930","1942","1947","1935"],1,
+      "The Quit India Movement began on 8 August 1942 after Gandhi's call at the Bombay session.","भारत छोड़ो आंदोलन 8 अगस्त 1942 को बॉम्बे अधिवेशन में गांधीजी के आह्वान के बाद शुरू हुआ।",
+      "The movement's slogan was 'Do or Die'.","इस आंदोलन का नारा था 'करो या मरो'।"),
+    mkQ("Who was the first Governor-General of independent India?","स्वतंत्र भारत के पहले गवर्नर-जनरल कौन थे?",
+      ["C. Rajagopalachari","Lord Mountbatten","Rajendra Prasad","Jawaharlal Nehru"],["सी. राजगोपालाचारी","लॉर्ड माउंटबेटन","राजेंद्र प्रसाद","जवाहरलाल नेहरू"],1,
+      "Lord Mountbatten served as Governor-General from August 1947 to June 1948.","लॉर्ड माउंटबेटन अगस्त 1947 से जून 1948 तक गवर्नर-जनरल रहे।",
+      "C. Rajagopalachari succeeded him as the first Indian Governor-General.","सी. राजगोपालाचारी उनके बाद पहले भारतीय गवर्नर-जनरल बने।")
+  ],
+  geo: [
+    mkQ("Which state has the longest coastline in India?","भारत में सबसे लंबी तटरेखा किस राज्य की है?",
+      ["Tamil Nadu","Gujarat","Andhra Pradesh","Kerala"],["तमिलनाडु","गुजरात","आंध्र प्रदेश","केरल"],1,
+      "Gujarat has India's longest coastline, stretching over 1,600 km.","गुजरात की तटरेखा भारत में सबसे लंबी है, जो 1,600 किमी से अधिक फैली है।",
+      "Gujarat is home to Kandla and Mundra, among India's busiest ports.","गुजरात में कांडला और मुंद्रा जैसे भारत के व्यस्ततम बंदरगाह हैं।"),
+    mkQ("Mount Kanchenjunga, India's highest peak, lies in which state?","भारत की सबसे ऊँची चोटी कंचनजंगा किस राज्य में स्थित है?",
+      ["Uttarakhand","Himachal Pradesh","Sikkim","Jammu & Kashmir"],["उत्तराखंड","हिमाचल प्रदेश","सिक्किम","जम्मू व कश्मीर"],2,
+      "Kanchenjunga, on the Sikkim-Nepal border, is the third-highest peak in the world.","सिक्किम-नेपाल सीमा पर स्थित कंचनजंगा विश्व की तीसरी सबसे ऊँची चोटी है।",
+      "It stands at 8,586 metres above sea level.","इसकी ऊँचाई समुद्र तल से 8,586 मीटर है।"),
+    mkQ("The Thar Desert lies primarily in which Indian state?","थार मरुस्थल मुख्यतः किस भारतीय राज्य में स्थित है?",
+      ["Haryana","Rajasthan","Punjab","Gujarat"],["हरियाणा","राजस्थान","पंजाब","गुजरात"],1,
+      "The Thar Desert covers a large part of western Rajasthan.","थार मरुस्थल पश्चिमी राजस्थान के बड़े हिस्से में फैला है।",
+      "It is one of the most densely populated deserts in the world.","यह विश्व के सर्वाधिक घनी आबादी वाले मरुस्थलों में से एक है।")
+  ],
+  polity: [
+    mkQ("How many fundamental duties are listed in the Indian Constitution?","भारतीय संविधान में कितने मौलिक कर्तव्य सूचीबद्ध हैं?",
+      ["9","10","11","12"],["9","10","11","12"],2,
+      "Article 51A originally listed 10 duties; a 11th was added by the 86th Amendment.","अनुच्छेद 51A में मूलतः 10 कर्तव्य थे; 86वें संशोधन द्वारा 11वाँ जोड़ा गया।",
+      "Fundamental Duties were added to the Constitution in 1976 via the 42nd Amendment.","मौलिक कर्तव्य 1976 में 42वें संशोधन के माध्यम से संविधान में जोड़े गए।"),
+    mkQ("Who is the ex-officio Chairman of the Rajya Sabha?","राज्यसभा के पदेन सभापति कौन होते हैं?",
+      ["The President","The Prime Minister","The Vice President","The Speaker"],["राष्ट्रपति","प्रधानमंत्री","उपराष्ट्रपति","अध्यक्ष"],2,
+      "The Vice President of India chairs the Rajya Sabha by virtue of the office.","भारत के उपराष्ट्रपति पदेन रूप से राज्यसभा की अध्यक्षता करते हैं।",
+      "The Rajya Sabha's Deputy Chairman is elected from among its own members.","राज्यसभा के उप-सभापति का चुनाव सदन के सदस्यों में से होता है।")
+  ],
+  economy: [
+    mkQ("Which committee recommended the Goods and Services Tax (GST) framework?","माल एवं सेवा कर (जीएसटी) ढांचे की सिफारिश किस समिति ने की थी?",
+      ["Kelkar Committee","Raghuram Rajan Committee","Narasimham Committee","Chelliah Committee"],["केलकर समिति","रघुराम राजन समिति","नरसिम्हम समिति","चेलैया समिति"],0,
+      "The Kelkar Task Force laid early groundwork that shaped India's GST design.","केलकर टास्क फोर्स ने भारत के जीएसटी ढांचे की शुरुआती नींव तैयार की।",
+      "GST was rolled out across India on 1 July 2017.","जीएसटी पूरे भारत में 1 जुलाई 2017 को लागू हुआ।"),
+    mkQ("What does 'repo rate' refer to?","'रेपो दर' किसे संदर्भित करती है?",
+      ["Rate at which RBI lends to banks","Rate banks pay depositors","Tax on repossessed goods","Rate of currency exchange"],
+      ["वह दर जिस पर आरबीआई बैंकों को ऋण देता है","बैंक जमाकर्ताओं को जो दर देते हैं","पुनः कब्जे में ली वस्तुओं पर कर","मुद्रा विनिमय दर"],0,
+      "The repo rate is the rate at which RBI lends short-term funds to commercial banks.","रेपो दर वह दर है जिस पर आरबीआई वाणिज्यिक बैंकों को अल्पकालिक धन उधार देता है।",
+      "Changes in the repo rate directly influence loan and deposit interest rates.","रेपो दर में बदलाव सीधे ऋण और जमा ब्याज दरों को प्रभावित करता है।")
+  ],
+  science: [
+    mkQ("What is the SI unit of electric current?","विद्युत धारा की SI इकाई क्या है?",
+      ["Volt","Ampere","Ohm","Watt"],["वोल्ट","एम्पियर","ओम","वाट"],1,
+      "The ampere measures the rate of flow of electric charge.","एम्पियर विद्युत आवेश के प्रवाह की दर मापता है।",
+      "It is named after French physicist André-Marie Ampère.","इसका नाम फ्रांसीसी भौतिक विज्ञानी आंद्रे-मैरी एम्पियर के नाम पर रखा गया है।"),
+    mkQ("Which organ in the human body produces insulin?","मानव शरीर में इंसुलिन किस अंग द्वारा उत्पादित होता है?",
+      ["Liver","Pancreas","Kidney","Spleen"],["यकृत","अग्न्याशय","गुर्दा","प्लीहा"],1,
+      "The pancreas produces insulin, which regulates blood glucose levels.","अग्न्याशय इंसुलिन का उत्पादन करता है, जो रक्त शर्करा के स्तर को नियंत्रित करता है।",
+      "Insufficient insulin production is linked to diabetes.","इंसुलिन के अपर्याप्त उत्पादन का संबंध मधुमेह से है।")
+  ],
+  sports: [
+    mkQ("India won its first Olympic gold in individual event through which sport?","भारत ने व्यक्तिगत स्पर्धा में अपना पहला ओलंपिक स्वर्ण किस खेल में जीता?",
+      ["Wrestling","Badminton","Shooting","Javelin Throw"],["कुश्ती","बैडमिंटन","निशानेबाज़ी","भाला फेंक"],2,
+      "Abhinav Bindra won gold in 10m air rifle shooting at the 2008 Beijing Olympics.","अभिनव बिंद्रा ने 2008 बीजिंग ओलंपिक में 10 मीटर एयर राइफल शूटिंग में स्वर्ण पदक जीता।",
+      "It was independent India's first individual Olympic gold medal.","यह स्वतंत्र भारत का पहला व्यक्तिगत ओलंपिक स्वर्ण पदक था।"),
+    mkQ("The Ranji Trophy is associated with which sport?","रणजी ट्रॉफी किस खेल से संबंधित है?",
+      ["Hockey","Football","Cricket","Kabaddi"],["हॉकी","फुटबॉल","क्रिकेट","कबड्डी"],2,
+      "Ranji Trophy is India's premier domestic first-class cricket championship.","रणजी ट्रॉफी भारत की प्रमुख घरेलू प्रथम श्रेणी क्रिकेट प्रतियोगिता है।",
+      "It is named after Ranjitsinhji, a former Indian cricketer who played for England.","इसका नाम रणजीतसिंहजी के नाम पर रखा गया, जो इंग्लैंड के लिए खेलने वाले भारतीय क्रिकेटर थे।")
+  ],
+  env: [
+    mkQ("Which gas is primarily responsible for the greenhouse effect?","हरितगृह प्रभाव के लिए मुख्यतः कौन सी गैस उत्तरदायी है?",
+      ["Nitrogen","Carbon Dioxide","Helium","Hydrogen"],["नाइट्रोजन","कार्बन डाइऑक्साइड","हीलियम","हाइड्रोजन"],1,
+      "Carbon dioxide traps heat in the atmosphere, driving the greenhouse effect.","कार्बन डाइऑक्साइड वायुमंडल में गर्मी को रोकता है, जिससे हरितगृह प्रभाव होता है।",
+      "CO2 levels have risen sharply since the industrial revolution.","औद्योगिक क्रांति के बाद से CO2 का स्तर तेज़ी से बढ़ा है।")
+  ],
+  world: [
+    mkQ("Which is the smallest country in the world by area?","क्षेत्रफल की दृष्टि से विश्व का सबसे छोटा देश कौन सा है?",
+      ["Monaco","San Marino","Vatican City","Liechtenstein"],["मोनाको","सैन मैरिनो","वेटिकन सिटी","लिकटेंस्टीन"],2,
+      "Vatican City covers about 0.44 sq km, making it the world's smallest sovereign state.","वेटिकन सिटी लगभग 0.44 वर्ग किमी में फैला है, जो इसे विश्व का सबसे छोटा संप्रभु राष्ट्र बनाता है।",
+      "It is an enclave entirely within Rome, Italy.","यह पूरी तरह से रोम, इटली के भीतर स्थित एक एन्क्लेव है।")
+  ],
+  defence: [
+    mkQ("What is the motto of the Indian Air Force?","भारतीय वायु सेना का आदर्श वाक्य क्या है?",
+      ["Satyameva Jayate","Nabh Sparsham Deeptam","Shauryam Dhairyam","Seva Paramo Dharma"],
+      ["सत्यमेव जयते","नभः स्पृशं दीप्तम्","शौर्यं धैर्यं","सेवा परमो धर्मः"],1,
+      "'Nabh Sparsham Deeptam' means 'touch the sky with glory', the IAF's official motto.","'नभः स्पृशं दीप्तम्' का अर्थ है 'गौरव के साथ आकाश को स्पर्श करना', जो IAF का आधिकारिक आदर्श वाक्य है।",
+      "It is drawn from the Bhagavad Gita.","यह भगवद गीता से लिया गया है।")
+  ],
+  awards: [
+    mkQ("The Bharat Ratna is India's highest civilian award in which field?","भारत रत्न भारत का सर्वोच्च नागरिक सम्मान किस क्षेत्र के लिए है?",
+      ["Only Science","Only Sports","Any field of human endeavour","Only Arts"],
+      ["केवल विज्ञान","केवल खेल","मानव प्रयास के किसी भी क्षेत्र में","केवल कला"],2,
+      "The Bharat Ratna recognises exceptional service in any field, including science, arts, public service and sports.","भारत रत्न विज्ञान, कला, लोक सेवा और खेल सहित किसी भी क्षेत्र में असाधारण सेवा के लिए दिया जाता है।",
+      "It was instituted in 1954.","इसकी स्थापना 1954 में हुई थी।")
+  ]
+};
+QUESTIONS.daily = QUESTIONS.gk;
+QUESTIONS.affairs = QUESTIONS.gk;
+// Entrance & Board sub-categories start seeded from the GK set (as separate copies, so
+// admin edits to one category never touch another) until an admin adds category-specific questions.
+["entEngineering","entMedical","entLaw","entAptitude","board10Sci","board10SSt","board12Com","board12Hum"].forEach(id=>{
+  QUESTIONS[id] = QUESTIONS.gk.slice(0,3);
+});
+
+const CURRENT_AFFAIRS = [
+  {cat:"national", tagEn:"National", tagHi:"राष्ट्रीय",
+    titleEn:"New national logistics policy portal launched", titleHi:"नया राष्ट्रीय लॉजिस्टिक्स नीति पोर्टल लॉन्च",
+    whatEn:"The government launched a unified digital portal to streamline logistics and reduce cargo turnaround times across states.",
+    whatHi:"सरकार ने राज्यों में लॉजिस्टिक्स को सुव्यवस्थित करने और कार्गो टर्नअराउंड समय घटाने के लिए एक एकीकृत डिजिटल पोर्टल लॉन्च किया।",
+    whyEn:"Faster, cheaper logistics improves export competitiveness — a recurring theme in exam current-affairs sections.",
+    whyHi:"तेज़, सस्ती लॉजिस्टिक्स निर्यात प्रतिस्पर्धात्मकता को बेहतर बनाती है — यह परीक्षा के करेंट अफेयर्स खंड में बार-बार आने वाला विषय है।",
+    factsEn:["Aims to cut logistics cost as % of GDP","Integrates rail, road, port and customs data","Part of the broader national logistics push"],
+    factsHi:["जीडीपी के % के रूप में लॉजिस्टिक्स लागत घटाने का लक्ष्य","रेल, सड़क, बंदरगाह और सीमा शुल्क डेटा को एकीकृत करता है","व्यापक राष्ट्रीय लॉजिस्टिक्स पहल का हिस्सा"],
+    mcqEn:"The national logistics push primarily aims to reduce which of the following?", mcqHi:"राष्ट्रीय लॉजिस्टिक्स पहल मुख्यतः निम्न में से किसे घटाने का लक्ष्य रखती है?",
+    mcqOptsEn:["Import duties","Logistics cost as % of GDP","Income tax slabs","State borders"], mcqOptsHi:["आयात शुल्क","जीडीपी के % के रूप में लॉजिस्टिक्स लागत","आयकर स्लैब","राज्यों की सीमाएँ"], mcqCorrect:1},
+  {cat:"international", tagEn:"International", tagHi:"अंतरराष्ट्रीय",
+    titleEn:"UN climate summit sets new emissions targets", titleHi:"संयुक्त राष्ट्र जलवायु सम्मेलन ने नए उत्सर्जन लक्ष्य तय किए",
+    whatEn:"Member nations agreed on updated emission-reduction commitments at the latest UN climate conference.",
+    whatHi:"नवीनतम संयुक्त राष्ट्र जलवायु सम्मेलन में सदस्य देशों ने अद्यतन उत्सर्जन-कमी प्रतिबद्धताओं पर सहमति व्यक्त की।",
+    whyEn:"Global climate commitments frequently appear in Environment and International Relations sections of competitive exams.",
+    whyHi:"वैश्विक जलवायु प्रतिबद्धताएँ प्रतियोगी परीक्षाओं के पर्यावरण व अंतरराष्ट्रीय संबंध खंडों में अक्सर पूछी जाती हैं।",
+    factsEn:["India reaffirmed its 2070 net-zero target","Focus areas included finance and technology transfer","Summit held under the UNFCCC framework"],
+    factsHi:["भारत ने अपने 2070 नेट-ज़ीरो लक्ष्य की पुष्टि की","वित्त और प्रौद्योगिकी हस्तांतरण पर विशेष ध्यान","सम्मेलन UNFCCC ढांचे के तहत आयोजित हुआ"],
+    mcqEn:"India's net-zero emissions target year is:", mcqHi:"भारत का नेट-ज़ीरो उत्सर्जन लक्ष्य वर्ष है:",
+    mcqOptsEn:["2050","2060","2070","2080"], mcqOptsHi:["2050","2060","2070","2080"], mcqCorrect:2},
+  {cat:"economy", tagEn:"Economy", tagHi:"अर्थव्यवस्था",
+    titleEn:"RBI holds repo rate steady in latest policy review", titleHi:"आरबीआई ने नवीनतम नीति समीक्षा में रेपो दर स्थिर रखी",
+    whatEn:"The Reserve Bank of India's Monetary Policy Committee kept the repo rate unchanged, citing balanced inflation and growth signals.",
+    whatHi:"भारतीय रिज़र्व बैंक की मौद्रिक नीति समिति ने संतुलित मुद्रास्फीति व विकास संकेतों का हवाला देते हुए रेपो दर अपरिवर्तित रखी।",
+    whyEn:"Repo-rate decisions are a staple of Banking and Economy sections across almost every competitive exam.",
+    whyHi:"रेपो दर संबंधी निर्णय लगभग हर प्रतियोगी परीक्षा के बैंकिंग व अर्थव्यवस्था खंड का प्रमुख विषय होते हैं।",
+    factsEn:["MPC has 6 members, including the RBI Governor","Decisions are reviewed roughly every two months","Repo rate directly affects loan EMIs"],
+    factsHi:["एमपीसी में आरबीआई गवर्नर सहित 6 सदस्य होते हैं","निर्णयों की समीक्षा लगभग हर दो महीने में होती है","रेपो दर सीधे ऋण की ईएमआई को प्रभावित करती है"],
+    mcqEn:"How many members does the RBI's Monetary Policy Committee have?", mcqHi:"आरबीआई की मौद्रिक नीति समिति में कितने सदस्य होते हैं?",
+    mcqOptsEn:["4","5","6","8"], mcqOptsHi:["4","5","6","8"], mcqCorrect:2},
+  {cat:"scitech", tagEn:"Science & Technology", tagHi:"विज्ञान व प्रौद्योगिकी",
+    titleEn:"ISRO completes another successful satellite launch", titleHi:"इसरो ने एक और सफल उपग्रह प्रक्षेपण पूरा किया",
+    whatEn:"ISRO successfully placed a new earth-observation satellite into orbit, expanding India's remote-sensing capability.",
+    whatHi:"इसरो ने एक नया पृथ्वी-अवलोकन उपग्रह सफलतापूर्वक कक्षा में स्थापित किया, जिससे भारत की रिमोट-सेंसिंग क्षमता का विस्तार हुआ।",
+    whyEn:"ISRO missions are among the most frequently tested current-affairs topics in Science & Technology sections.",
+    whyHi:"इसरो मिशन विज्ञान व प्रौद्योगिकी खंड में सबसे अधिक पूछे जाने वाले करेंट अफेयर्स विषयों में से हैं।",
+    factsEn:["Launched aboard a PSLV rocket","Satellite supports disaster management and agriculture monitoring","Continues India's earth-observation satellite series"],
+    factsHi:["पीएसएलवी रॉकेट से प्रक्षेपित","उपग्रह आपदा प्रबंधन व कृषि निगरानी में सहायक","भारत की पृथ्वी-अवलोकन उपग्रह श्रृंखला को आगे बढ़ाता है"],
+    mcqEn:"ISRO's satellites in this series primarily support:", mcqHi:"इस श्रृंखला के इसरो उपग्रह मुख्यतः किसमें सहायक हैं:",
+    mcqOptsEn:["Deep space tourism","Disaster management & agriculture monitoring","Currency printing","Weather on Mars"], mcqOptsHi:["गहरे अंतरिक्ष पर्यटन","आपदा प्रबंधन व कृषि निगरानी","मुद्रा छपाई","मंगल पर मौसम"], mcqCorrect:1},
+  {cat:"sports", tagEn:"Sports", tagHi:"खेल",
+    titleEn:"India finishes strong at the Asian Games", titleHi:"भारत ने एशियाई खेलों में शानदार प्रदर्शन किया",
+    whatEn:"Indian athletes secured a record medal tally across athletics, shooting and badminton at the latest Asian Games.",
+    whatHi:"भारतीय एथलीटों ने नवीनतम एशियाई खेलों में एथलेटिक्स, निशानेबाज़ी और बैडमिंटन में रिकॉर्ड पदक तालिका हासिल की।",
+    whyEn:"Sporting achievements and medal counts are commonly asked in GK and Sports current-affairs sections.",
+    whyHi:"खेल उपलब्धियाँ और पदक तालिकाएँ सामान्य ज्ञान व खेल करेंट अफेयर्स खंड में आमतौर पर पूछी जाती हैं।",
+    factsEn:["Best-ever medal tally for the Indian contingent","Shooting and athletics led the medal count","Games held once every four years"],
+    factsHi:["भारतीय दल के लिए अब तक की सर्वश्रेष्ठ पदक तालिका","निशानेबाज़ी व एथलेटिक्स में सर्वाधिक पदक","खेल हर चार वर्ष में एक बार आयोजित होते हैं"],
+    mcqEn:"The Asian Games are held once every:", mcqHi:"एशियाई खेल कितने वर्षों में एक बार आयोजित होते हैं:",
+    mcqOptsEn:["2 years","3 years","4 years","5 years"], mcqOptsHi:["2 वर्ष","3 वर्ष","4 वर्ष","5 वर्ष"], mcqCorrect:2},
+  {cat:"appointments", tagEn:"Appointments", tagHi:"नियुक्तियाँ",
+    titleEn:"New Chief Election Commissioner takes charge", titleHi:"नए मुख्य चुनाव आयुक्त ने पदभार संभाला",
+    whatEn:"A senior civil servant was appointed as the new Chief Election Commissioner of India for a fixed term.",
+    whatHi:"एक वरिष्ठ सिविल सेवक को भारत के नए मुख्य चुनाव आयुक्त के रूप में एक निश्चित कार्यकाल के लिए नियुक्त किया गया।",
+    whyEn:"Key constitutional appointments are a recurring, high-weightage topic in Polity current-affairs questions.",
+    whyHi:"प्रमुख संवैधानिक नियुक्तियाँ राजव्यवस्था करेंट अफेयर्स प्रश्नों में बार-बार आने वाला, उच्च भारांक वाला विषय हैं।",
+    factsEn:["The Election Commission is a constitutional body under Article 324","CEC's term is 6 years or up to age 65","Appointment follows a statutory selection process"],
+    factsHi:["चुनाव आयोग अनुच्छेद 324 के तहत एक संवैधानिक निकाय है","सीईसी का कार्यकाल 6 वर्ष या 65 वर्ष की आयु तक है","नियुक्ति एक वैधानिक चयन प्रक्रिया के तहत होती है"],
+    mcqEn:"The Election Commission of India is established under which Article?", mcqHi:"भारत निर्वाचन आयोग किस अनुच्छेद के तहत स्थापित है?",
+    mcqOptsEn:["Article 315","Article 320","Article 324","Article 330"], mcqOptsHi:["अनुच्छेद 315","अनुच्छेद 320","अनुच्छेद 324","अनुच्छेद 330"], mcqCorrect:2}
+];
+
+// Demo/guest values shown to anyone browsing without signing in (unchanged from the original prototype).
+// A real signed-in user's data always comes from Firestore (users/{uid}) once loaded — see loadUserData().
+const GUEST_DEFAULTS = {
+  xp:640, level:3, levelName:"Learner", quizzesPlayed:12, streak:5, bestScore:9,
+  quizHistory:[
+    {catId:"gk", score:8, total:10, accuracy:80, dateEn:"20 Aug 2026", dateHi:"20 अगस्त 2026"},
+    {catId:"polity", score:9, total:10, accuracy:90, dateEn:"18 Aug 2026", dateHi:"18 अगस्त 2026"},
+    {catId:"history", score:7, total:10, accuracy:70, dateEn:"16 Aug 2026", dateHi:"16 अगस्त 2026"}
+  ]
+};
+let state = {
+  lang:null, theme:"light", currentCategory:"gk", qIndex:0, answers:[], bookmarks:new Set(),
+  xp:GUEST_DEFAULTS.xp, level:GUEST_DEFAULTS.level, levelName:GUEST_DEFAULTS.levelName,
+  quizzesPlayed:GUEST_DEFAULTS.quizzesPlayed, streak:GUEST_DEFAULTS.streak, bestScore:GUEST_DEFAULTS.bestScore,
+  quizHistory: GUEST_DEFAULTS.quizHistory.slice(),
+  notif:true, sound:true, haptic:true,
+  caTab:"all", lbTab:"daily", adminTab:"questions",
+  user:null, isAdmin:false, authLoading:false
+};
+// Resets in-memory user data back to guest/demo values — used on sign-out and before any user is signed in.
+function resetToGuestDefaults(){
+  state.xp = GUEST_DEFAULTS.xp; state.level = GUEST_DEFAULTS.level; state.levelName = GUEST_DEFAULTS.levelName;
+  state.quizzesPlayed = GUEST_DEFAULTS.quizzesPlayed; state.streak = GUEST_DEFAULTS.streak; state.bestScore = GUEST_DEFAULTS.bestScore;
+  state.quizHistory = GUEST_DEFAULTS.quizHistory.slice();
+  state.bookmarks = new Set();
+}
+let currentCategory = "gk";
+let timerInterval = null, timeLeft = 12, totalStart = null;
+let toastTimer = null;
+
+function t(key){ return (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key; }
+function showToast(key){
+  const el = document.getElementById("toast");
+  el.textContent = t(key);
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove("show"), 1800);
+}
+
+function applyI18n(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.innerHTML = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ el.placeholder = t(el.getAttribute("data-i18n-ph")); });
+  document.documentElement.lang = state.lang;
+  document.body.classList.toggle("lang-hi", state.lang === "hi");
+  document.getElementById("langPillBtn").textContent = state.lang.toUpperCase();
+  document.getElementById("langPillBtn2").textContent = state.lang.toUpperCase();
+  renderHomeTiles(); renderExamRow(); renderCategoryBlocks(); renderExamBlocks();
+  renderSettingsLangOptions(); renderThemeOptions(); renderCurrentAffairs(); renderLeaderboard();
+  renderProfile(); renderNotifications(); renderAdminCategorySelect(); renderAdminQuestions(); renderHistory();
+  renderAuthUI();
+}
+
+const LANGS = [
+  {code:"hi", native:"हिन्दी", eng:"Hindi", available:true},
+  {code:"en", native:"English", eng:"English", available:true},
+  {code:"bn", native:"বাংলা", eng:"Bengali", available:false},
+  {code:"ur", native:"اردو", eng:"Urdu", available:false},
+  {code:"ta", native:"தமிழ்", eng:"Tamil", available:false}
+];
+let gateSelection = "en";
+function renderLangGate(){
+  const wrap = document.getElementById("langOptions");
+  wrap.innerHTML = "";
+  LANGS.forEach(l=>{
+    const div = document.createElement("div");
+    div.className = "lang-option" + (l.code===gateSelection?" selected":"") + (l.available?"":" more");
+    div.innerHTML = `<span class="native">${l.native} <span class="eng">${l.available? l.eng : l.eng+" · soon"}</span></span><span class="tick"></span>`;
+    if(l.available) div.onclick = ()=>{ gateSelection = l.code; renderLangGate(); };
+    wrap.appendChild(div);
+  });
+}
+renderLangGate();
+document.getElementById("gateContinue").onclick = ()=>{
+  state.lang = gateSelection;
+  document.getElementById("lang-gate").classList.add("hidden");
+  applyI18n();
+};
+document.getElementById("langPillBtn").onclick = toggleLangQuick;
+document.getElementById("langPillBtn2").onclick = toggleLangQuick;
+function toggleLangQuick(){ state.lang = state.lang === "en" ? "hi" : "en"; applyI18n(); }
+
+function renderSettingsLangOptions(){
+  const wrap = document.getElementById("settingsLangOptions");
+  if(!wrap) return;
+  wrap.innerHTML = "";
+  const avail = LANGS.filter(l=>l.available);
+  avail.forEach((l,i)=>{
+    const row = document.createElement("button");
+    row.className = "settings-row";
+    row.style.width = "100%";
+    row.style.borderRadius = i===0 ? "12px 12px 0 0" : (i===avail.length-1 ? "0 0 12px 12px" : "0");
+    row.innerHTML = `<span class="left">${l.native} <span style="color:var(--ink-faint);font-size:11px">(${l.eng})</span></span>${state.lang===l.code?'<span style="color:var(--primary);font-weight:700">✓</span>':''}`;
+    row.onclick = ()=>{ state.lang = l.code; applyI18n(); };
+    wrap.appendChild(row);
+  });
+}
+function renderThemeOptions(){
+  const wrap = document.getElementById("themeOptions");
+  if(!wrap) return;
+  const opts = [{id:"light", ic:"☀️", en:"Light", hi:"लाइट"},{id:"dark", ic:"🌙", en:"Dark", hi:"डार्क"},{id:"system", ic:"📱", en:"System", hi:"सिस्टम"}];
+  wrap.innerHTML = "";
+  opts.forEach(o=>{
+    const btn = document.createElement("button");
+    btn.className = "theme-opt" + (state.theme===o.id ? " active":"");
+    btn.innerHTML = `${o.ic}<br>${state.lang==="hi"?o.hi:o.en}`;
+    btn.onclick = ()=>{ setTheme(o.id); };
+    wrap.appendChild(btn);
+  });
+}
+function setTheme(mode){
+  state.theme = mode;
+  let effective = mode;
+  if(mode==="system") effective = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark":"light";
+  document.body.setAttribute("data-theme", effective);
+  renderThemeOptions();
+  showToast("toast.theme");
+}
+function toggleSetting(key){
+  state[key] = !state[key];
+  document.getElementById("toggle"+key.charAt(0).toUpperCase()+key.slice(1)).classList.toggle("on", state[key]);
+}
+
+function goTo(screen){
+  if(screen==="admin" && !state.isAdmin){
+    showToast("toast.adminOnly");
+    screen = "settings";
+  }
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen-"+screen).classList.add("active");
+  document.querySelectorAll(".navitem").forEach(n=>n.classList.remove("active"));
+  const navMap = {home:"home", categories:"categories", quiz:"categories", examzone:"categories", affairs:"affairs",
+    leaderboard:"leaderboard", profile:"profile", result:"categories", review:"categories", bookmarks:"profile",
+    history:"profile", settings:"profile", notifications:"home", search:"home", admin:"profile"};
+  const nav = document.querySelector(`.navitem[data-screen="${navMap[screen]}"]`);
+  if(nav) nav.classList.add("active");
+  window.scrollTo(0,0);
+  if(screen==="bookmarks") renderBookmarksScreen();
+  if(screen==="history") renderHistory();
+  if(screen==="admin"){ renderAdminModeBanner(); renderAdminCategorySelect(); renderAdminQuestions(); renderAdminCategoriesTab(); renderAdminAccess(); }
+}
+
+function renderHomeTiles(){
+  const grid = document.getElementById("homeTiles");
+  grid.innerHTML = "";
+  CATEGORIES.slice(0,6).forEach(c=>{
+    const el = document.createElement("button");
+    el.className = "tile";
+    el.onclick = ()=>startQuiz(c.id);
+    el.innerHTML = `<div class="tile-icon">${c.icon}</div><b>${state.lang==="hi"?c.hi:c.en}</b><span>${(QUESTIONS[c.id]||[]).length} ${state.lang==="hi"?"प्रश्न":"questions"}</span>`;
+    grid.appendChild(el);
+  });
+}
+function renderExamRow(){
+  const row = document.getElementById("examRow");
+  row.innerHTML = "";
+  EXAMS.forEach(ex=>{
+    const chip = document.createElement("button");
+    chip.className = "exam-chip";
+    chip.textContent = state.lang==="hi" ? ex.hi : ex.en;
+    chip.onclick = ()=>goTo("examzone");
+    row.appendChild(chip);
+  });
+}
+function renderCategoryBlocks(){
+  const wrap = document.getElementById("categoryBlocks");
+  if(!wrap) return;
+  wrap.innerHTML = "";
+  CATEGORY_GROUPS.forEach(g=>{
+    const subs = CATEGORIES.filter(c=>c.group===g.id);
+    if(subs.length===0) return;
+    const block = document.createElement("div");
+    block.className = "cat-block";
+    block.innerHTML = `<h4>${state.lang==="hi"?g.hi:g.en}</h4>`;
+    const list = document.createElement("div");
+    list.className = "sub-list";
+    subs.forEach(c=>{
+      const item = document.createElement("button");
+      item.className = "sub-item";
+      item.innerHTML = `<div class="left"><div class="ic">${c.icon}</div><div><b>${state.lang==="hi"?c.hi:c.en}</b><span>${(QUESTIONS[c.id]||[]).length} ${state.lang==="hi"?"प्रश्न":"questions"}</span></div></div><span class="chev">›</span>`;
+      item.onclick = ()=>startQuiz(c.id);
+      list.appendChild(item);
+    });
+    block.appendChild(list);
+    wrap.appendChild(block);
+  });
+}
+function renderExamBlocks(){
+  const wrap = document.getElementById("examBlocks");
+  if(!wrap) return;
+  wrap.innerHTML = "";
+  EXAMS.forEach(ex=>{
+    const block = document.createElement("div");
+    block.className = "cat-block";
+    block.innerHTML = `<h4>${state.lang==="hi"?ex.hi:ex.en}</h4>`;
+    const list = document.createElement("div");
+    list.className = "sub-list";
+    EXAM_SUBS.forEach(s=>{
+      const item = document.createElement("button");
+      item.className = "sub-item";
+      item.innerHTML = `<div class="left"><div class="ic">${s.icon}</div><div><b>${state.lang==="hi"?s.hi:s.en}</b></div></div><span class="chev">›</span>`;
+      item.onclick = ()=>{
+        if(s.live){ startQuiz("gk"); return; }
+        const el = document.getElementById("toast");
+        el.textContent = state.lang==="hi" ? "प्रश्न बैंक जल्द जोड़ा जा रहा है" : "Question bank being added soon";
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(()=>el.classList.remove("show"), 1800);
+      };
+      list.appendChild(item);
+    });
+    block.appendChild(list);
+    wrap.appendChild(block);
+  });
+}
+
+document.getElementById("startDailyBtn").onclick = ()=>startQuiz("daily");
+
+function startQuiz(catId){
+  currentCategory = QUESTIONS[catId] ? catId : "gk";
+  state.currentCategory = currentCategory;
+  state.qIndex = 0;
+  state.answers = new Array(QUESTIONS[currentCategory].length).fill(null);
+  totalStart = Date.now();
+  goTo("quiz");
+  renderQuestion();
+}
+function renderQuestion(){
+  const set = QUESTIONS[currentCategory];
+  const q = set[state.qIndex];
+  document.getElementById("qProgressLabel").textContent = `${state.lang==="hi"?"प्रश्न":"Question"} ${state.qIndex+1} / ${set.length}`;
+  document.getElementById("qProgressFill").style.width = `${((state.qIndex+1)/set.length)*100}%`;
+  const catObj = CATEGORIES.find(c=>c.id===currentCategory);
+  document.getElementById("qCategory").textContent = catObj ? (state.lang==="hi"?catObj.hi:catObj.en) : "GK";
+  document.getElementById("qText").textContent = q.q[state.lang];
+  document.getElementById("explainSlot").innerHTML = "";
+  document.getElementById("nextBtn").disabled = true;
+  document.getElementById("nextBtn").textContent = (state.qIndex === set.length-1) ? t("quiz.submit") : t("quiz.next");
+  document.getElementById("prevBtn").style.visibility = state.qIndex===0 ? "hidden" : "visible";
+
+  const optsWrap = document.getElementById("qOptions");
+  optsWrap.innerHTML = "";
+  const letters = ["A","B","C","D"];
+  q.opts[state.lang].forEach((optText,i)=>{
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${optText}</span>`;
+    const already = state.answers[state.qIndex];
+    if(already !== null){
+      btn.disabled = true;
+      if(i===q.correct) btn.classList.add("correct");
+      if(i===already.selected && already.selected!==q.correct) btn.classList.add("wrong");
+    } else {
+      btn.onclick = ()=>selectAnswer(i);
+    }
+    optsWrap.appendChild(btn);
+  });
+
+  document.getElementById("bookmarkBtn").classList.toggle("bookmarked", state.bookmarks.has(currentCategory+"-"+state.qIndex));
+
+  clearInterval(timerInterval);
+  if(state.answers[state.qIndex] === null){
+    timeLeft = 12;
+    document.getElementById("qTimer").textContent = "00:"+String(timeLeft).padStart(2,"0");
+    timerInterval = setInterval(()=>{
+      timeLeft--;
+      document.getElementById("qTimer").textContent = "00:"+String(Math.max(timeLeft,0)).padStart(2,"0");
+      if(timeLeft<=0){ clearInterval(timerInterval); selectAnswer(-1); }
+    },1000);
+  } else {
+    showExplanation(q, state.answers[state.qIndex].selected);
+  }
+}
+function selectAnswer(i){
+  clearInterval(timerInterval);
+  const set = QUESTIONS[currentCategory];
+  const q = set[state.qIndex];
+  state.answers[state.qIndex] = { selected:i, correct:q.correct, timeLeft:Math.max(timeLeft,0) };
+  renderQuestion();
+  document.getElementById("nextBtn").disabled = false;
+}
+function showExplanation(q, selected){
+  const isCorrect = selected === q.correct;
+  document.getElementById("explainSlot").innerHTML = `
+    <div class="explain-card">
+      <span class="explain-tag ${isCorrect?'ok':'no'}">${isCorrect ? '✓ '+t('explain.correct') : '✕ '+t('explain.incorrect')}</span>
+      <h5>${t('explain.explanation')}</h5><p>${q.explain[state.lang]}</p>
+      <div class="fact-box"><b>💡 ${t('explain.fact')}</b>${q.fact[state.lang]}</div>
+    </div>`;
+}
+function toggleBookmark(){
+  const key = currentCategory+"-"+state.qIndex;
+  const nowOn = !state.bookmarks.has(key);
+  if(nowOn) state.bookmarks.add(key); else state.bookmarks.delete(key);
+  document.getElementById("bookmarkBtn").classList.toggle("bookmarked", nowOn);
+  showToast(nowOn ? "toast.bookmarked" : "toast.unbookmarked");
+  saveBookmarkToFirestore(key, nowOn);
+}
+function reportQuestion(ev){
+  showToast("toast.reported");
+  const btn = ev.currentTarget, original = btn.textContent;
+  btn.textContent = "✓"; setTimeout(()=>btn.textContent = original, 1200);
+}
+function prevQuestion(){ if(state.qIndex>0){ state.qIndex--; renderQuestion(); } }
+function nextQuestion(){
+  const set = QUESTIONS[currentCategory];
+  if(state.qIndex < set.length-1){ state.qIndex++; renderQuestion(); } else { finishQuiz(); }
+}
+function finishQuiz(){
+  clearInterval(timerInterval);
+  const set = QUESTIONS[currentCategory];
+  let correct=0, wrong=0, points=0;
+  state.answers.forEach(a=>{
+    if(!a) return;
+    if(a.selected === a.correct){ correct++; points += 10 + (a.timeLeft||0); }
+    else if(a.selected !== -1) wrong++;
+  });
+  const elapsedSec = Math.round((Date.now()-totalStart)/1000);
+  const mm = String(Math.floor(elapsedSec/60)).padStart(2,"0"), ss = String(elapsedSec%60).padStart(2,"0");
+  const accuracy = Math.round((correct/set.length)*100);
+
+  state.xp += points; state.quizzesPlayed += 1;
+  if(correct > state.bestScore) state.bestScore = correct;
+  const historyEntry = {catId:currentCategory, score:correct, total:set.length, accuracy, dateEn:"Today", dateHi:"आज", timestamp: Date.now()};
+  state.quizHistory.unshift(historyEntry);
+  recomputeLevel();
+  saveHistoryEntry(historyEntry);
+  saveUserData();
+
+  document.getElementById("resultScore").innerHTML = `${correct}<span>/${set.length}</span>`;
+  document.getElementById("resAccuracy").textContent = accuracy+"%";
+  document.getElementById("resCorrect").textContent = correct;
+  document.getElementById("resWrong").textContent = wrong;
+  document.getElementById("resTime").textContent = mm+":"+ss;
+  document.getElementById("resXP").textContent = "+"+points+" XP";
+  document.getElementById("resStreak").textContent = "🔥 "+state.streak+" "+(state.lang==="hi"?"दिन":"Days");
+  document.getElementById("resultEmoji").textContent = accuracy>=80 ? "🏆" : accuracy>=50 ? "👍" : "📘";
+
+  renderReview(); renderProfile(); renderHistory();
+  goTo("result");
+}
+function recomputeLevel(){
+  const levels = [
+    {min:0, en:"Beginner", hi:"शुरुआती"},{min:500, en:"Learner", hi:"शिक्षार्थी"},
+    {min:1500, en:"Scholar", hi:"विद्वान"},{min:3500, en:"Expert", hi:"विशेषज्ञ"},{min:7000, en:"Master", hi:"मास्टर"}
+  ];
+  let idx = 0;
+  levels.forEach((l,i)=>{ if(state.xp >= l.min) idx = i; });
+  state.level = idx+1; state.levelName = levels[idx].en; state.levelNameHi = levels[idx].hi;
+  state.xpNext = levels[idx+1] ? levels[idx+1].min : levels[idx].min + 3000;
+  state.xpFloor = levels[idx].min;
+}
+function renderReview(){
+  const set = QUESTIONS[currentCategory];
+  const wrap = document.getElementById("reviewList");
+  wrap.innerHTML = "";
+  const letters = ["A","B","C","D"];
+  set.forEach((q,i)=>{
+    const a = state.answers[i];
+    const isCorrect = a && a.selected === q.correct;
+    const card = document.createElement("div");
+    card.style.cssText = "background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:12px;box-shadow:var(--shadow)";
+    card.innerHTML = `
+      <span class="explain-tag ${isCorrect?'ok':'no'}">${isCorrect ? '✓' : '✕'} ${state.lang==='hi'?'प्रश्न':'Q'} ${i+1}</span>
+      <p style="font-weight:600;font-size:14px;margin:8px 0">${q.q[state.lang]}</p>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 4px">${state.lang==='hi'?'सही उत्तर':'Correct answer'}: <b style="color:var(--success)">${letters[q.correct]}. ${q.opts[state.lang][q.correct]}</b></p>
+      <p style="font-size:12.5px;line-height:1.5;color:var(--ink-soft);margin:8px 0 0">${q.explain[state.lang]}</p>`;
+    wrap.appendChild(card);
+  });
+}
+
+const CA_TABS = [{id:"all", en:"All", hi:"सभी"},{id:"national", en:"National", hi:"राष्ट्रीय"},{id:"international", en:"International", hi:"अंतरराष्ट्रीय"},
+  {id:"economy", en:"Economy", hi:"अर्थव्यवस्था"},{id:"scitech", en:"Sci & Tech", hi:"विज्ञान व तकनीक"},{id:"sports", en:"Sports", hi:"खेल"},{id:"appointments", en:"Appointments", hi:"नियुक्तियाँ"}];
+function renderCurrentAffairs(){
+  const tabWrap = document.getElementById("caTabs");
+  if(!tabWrap) return;
+  tabWrap.innerHTML = "";
+  CA_TABS.forEach(tb=>{
+    const btn = document.createElement("button");
+    btn.className = "ca-tab" + (state.caTab===tb.id ? " active":"");
+    btn.textContent = state.lang==="hi"?tb.hi:tb.en;
+    btn.onclick = ()=>{ state.caTab = tb.id; renderCurrentAffairs(); };
+    tabWrap.appendChild(btn);
+  });
+  const list = document.getElementById("caList");
+  list.innerHTML = "";
+  const items = CURRENT_AFFAIRS.filter(it => state.caTab==="all" || it.cat===state.caTab);
+  items.forEach((it)=>{
+    const idx = CURRENT_AFFAIRS.indexOf(it);
+    const card = document.createElement("div");
+    card.className = "ca-card";
+    const bmKey = "ca-"+idx;
+    card.innerHTML = `
+      <span class="ca-cat-tag">${state.lang==="hi"?it.tagHi:it.tagEn}<button class="bookmark-mini" onclick="toggleCaBookmark(event,'${bmKey}')">${state.bookmarks.has(bmKey)?'🔖':'🔗'}</button></span>
+      <h4>${state.lang==="hi"?it.titleHi:it.titleEn}</h4>
+      <div class="row"><b>${state.lang==="hi"?"क्या हुआ?":"What happened?"}</b><p>${state.lang==="hi"?it.whatHi:it.whatEn}</p></div>
+      <div class="row"><b>${state.lang==="hi"?"क्यों महत्वपूर्ण है?":"Why is it important?"}</b><p>${state.lang==="hi"?it.whyHi:it.whyEn}</p></div>
+      <div class="row"><b>${state.lang==="hi"?"मुख्य तथ्य":"Key Facts"}</b><div class="key-facts">${(state.lang==="hi"?it.factsHi:it.factsEn).map(f=>"• "+f).join("<br>")}</div></div>
+      <div class="ca-mcq">
+        <div class="ca-mcq-q">${state.lang==="hi"?"संबंधित MCQ:":"Related MCQ:"} ${state.lang==="hi"?it.mcqHi:it.mcqEn}</div>
+        <div class="ca-mcq-opts" id="caMcq${idx}"></div>
+      </div>`;
+    list.appendChild(card);
+    const optsWrap = card.querySelector(`#caMcq${idx}`);
+    (state.lang==="hi"?it.mcqOptsHi:it.mcqOptsEn).forEach((opt,oi)=>{
+      const ob = document.createElement("button");
+      ob.className = "ca-mcq-opt";
+      ob.textContent = opt;
+      ob.onclick = ()=>{
+        Array.from(optsWrap.children).forEach((c,ci)=>{
+          c.disabled = true;
+          if(ci===it.mcqCorrect) c.classList.add("correct");
+          else if(ci===oi) c.classList.add("wrong");
+        });
+      };
+      optsWrap.appendChild(ob);
+    });
+  });
+}
+function toggleCaBookmark(ev, key){
+  ev.stopPropagation();
+  const nowOn = !state.bookmarks.has(key);
+  if(nowOn) state.bookmarks.add(key); else state.bookmarks.delete(key);
+  renderCurrentAffairs();
+  saveBookmarkToFirestore(key, nowOn);
+}
+
+function renderBookmarksScreen(){
+  const wrap = document.getElementById("bookmarksList");
+  wrap.innerHTML = "";
+  if(state.bookmarks.size===0){
+    wrap.innerHTML = `<div class="empty-note" style="margin-top:20px">${t("empty.bookmarks")}</div>`;
+    return;
+  }
+  state.bookmarks.forEach(key=>{
+    const card = document.createElement("div");
+    card.style.cssText = "background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:9px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center";
+    if(key.startsWith("ca-")){
+      const idx = parseInt(key.split("-")[1]);
+      const it = CURRENT_AFFAIRS[idx];
+      card.innerHTML = `<div><b style="font-size:13px">${state.lang==="hi"?it.titleHi:it.titleEn}</b><div style="font-size:11px;color:var(--ink-faint);margin-top:2px">${state.lang==="hi"?"करेंट अफेयर्स":"Current Affairs"}</div></div><span class="chev">›</span>`;
+      card.onclick = ()=>{ goTo("affairs"); };
+    } else {
+      const [cat, qi] = key.split("-");
+      const q = (QUESTIONS[cat]||[])[parseInt(qi)];
+      if(!q) return;
+      const catObj = CATEGORIES.find(c=>c.id===cat);
+      card.innerHTML = `<div><b style="font-size:13px">${q.q[state.lang]}</b><div style="font-size:11px;color:var(--ink-faint);margin-top:2px">${catObj?(state.lang==="hi"?catObj.hi:catObj.en):cat}</div></div><span class="chev">›</span>`;
+      card.onclick = ()=>{ startQuiz(cat); };
+    }
+    wrap.appendChild(card);
+  });
+}
+
+const LB_TABS = [{id:"daily", en:"Daily", hi:"दैनिक"},{id:"weekly", en:"Weekly", hi:"साप्ताहिक"},{id:"monthly", en:"Monthly", hi:"मासिक"},{id:"alltime", en:"All-Time", hi:"सर्वकालिक"}];
+const LB_NAMES = ["Aditi_Sharma","Rahul_UPSC","Priya.K","Vikram_SSC","Neha_Rao","Amit_Verma","Sana_Patel","Rohit_Singh"];
+function renderLeaderboard(){
+  const tabWrap = document.getElementById("lbTabs");
+  if(!tabWrap) return;
+  tabWrap.innerHTML = "";
+  LB_TABS.forEach(tb=>{
+    const btn = document.createElement("button");
+    btn.className = "lb-tab" + (state.lbTab===tb.id?" active":"");
+    btn.textContent = state.lang==="hi"?tb.hi:tb.en;
+    btn.onclick = ()=>{ state.lbTab = tb.id; renderLeaderboard(); };
+    tabWrap.appendChild(btn);
+  });
+  const list = document.getElementById("lbList");
+
+  if(firebaseReady){
+    if(realLeaderboardCache === null){
+      list.innerHTML = `<div class="empty-note">${state.lang==="hi"?"लोड हो रहा है…":"Loading…"}</div>`;
+      loadRealLeaderboard().then(rows=>{ realLeaderboardCache = rows || []; renderLeaderboard(); });
+      return;
+    }
+    // Real ranking is by all-time XP for every tab (no per-period XP tracking yet) — see chat notes.
+    list.innerHTML = "";
+    realLeaderboardCache.forEach((r,i)=>{
+      const row = document.createElement("div");
+      row.className = "lb-row" + (r.me ? " me":"");
+      const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
+      const shownName = r.me ? (state.lang==="hi"?"आप · ":"You · ") + r.name : r.name;
+      row.innerHTML = `<div class="lb-rank ${i<3?'top':''}">${medal}</div><div class="lb-avatar">${r.name.charAt(0).toUpperCase()}</div><div class="lb-name">${shownName}</div><div class="lb-xp">${r.xp} XP</div>`;
+      list.appendChild(row);
+    });
+    if(realLeaderboardCache.length===0) list.innerHTML = `<div class="empty-note">${t('noresults')}</div>`;
+    return;
+  }
+
+  // Local demo mode — unchanged mock ranking.
+  list.innerHTML = "";
+  const seedMap = {daily:1, weekly:4, monthly:9, alltime:20};
+  const seed = seedMap[state.lbTab];
+  const rows = LB_NAMES.map((n,i)=>({name:n, xp: Math.round(3200/seed) - i*120 + (seed*17)}));
+  rows.splice(3,0,{name: state.lang==="hi"?"आप (Aspirant_2026)":"You (Aspirant_2026)", xp: state.xp, me:true});
+  rows.sort((a,b)=>b.xp-a.xp);
+  rows.forEach((r,i)=>{
+    const row = document.createElement("div");
+    row.className = "lb-row" + (r.me ? " me":"");
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1);
+    row.innerHTML = `<div class="lb-rank ${i<3?'top':''}">${medal}</div><div class="lb-avatar">${r.name.charAt(0)}</div><div class="lb-name">${r.name}</div><div class="lb-xp">${r.xp} XP</div>`;
+    list.appendChild(row);
+  });
+}
+
+function renderProfile(){
+  recomputeLevel();
+  const nameEl = document.getElementById("profName");
+  if(!nameEl) return;
+  const displayName = state.user ? (state.user.displayName || state.user.email || "Aspirant") : "Aspirant_2026 (Guest)";
+  const avatarChar = (state.user ? (state.user.displayName || state.user.email || "A") : "A").charAt(0).toUpperCase();
+  nameEl.textContent = displayName;
+  const avatarEl = document.getElementById("profAvatar");
+  if(state.user && state.user.photoURL){
+    avatarEl.innerHTML = `<img src="${state.user.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+  } else {
+    avatarEl.textContent = avatarChar;
+  }
+  document.getElementById("profLevel").textContent = `${state.lang==="hi"?state.levelNameHi:state.levelName} · Level ${state.level}`;
+  const span = state.xpNext - state.xpFloor;
+  const pct = Math.min(100, Math.round(((state.xp - state.xpFloor)/span)*100));
+  document.getElementById("profXPBar").style.width = pct+"%";
+  document.getElementById("profXPNow").textContent = state.xp+" XP";
+  document.getElementById("profXPNext").textContent = (state.lang==="hi"?"अगला: ":"Next: ")+state.xpNext+" XP";
+
+  const stats = [
+    {v:state.quizzesPlayed, en:"Quizzes", hi:"क्विज़"},
+    {v:state.quizHistory.length*10, en:"Questions", hi:"प्रश्न"},
+    {v:(state.quizHistory.reduce((s,h)=>s+h.accuracy,0)/Math.max(state.quizHistory.length,1)).toFixed(0)+"%", en:"Accuracy", hi:"सटीकता"},
+    {v:state.bestScore+"/10", en:"Best Score", hi:"सर्वश्रेष्ठ"}
+  ];
+  document.getElementById("profStats").innerHTML = stats.map(s=>`<div class="stat-card"><b>${s.v}</b><span>${state.lang==="hi"?s.hi:s.en}</span></div>`).join("");
+
+  const badges = [
+    {ic:"🏅", en:"First Quiz", hi:"पहला क्विज़", unlocked: state.quizzesPlayed>=1},
+    {ic:"🔥", en:"7-Day Streak", hi:"7-दिन स्ट्रीक", unlocked: state.streak>=7},
+    {ic:"🎯", en:"90% Accuracy", hi:"90% सटीकता", unlocked: state.quizHistory.some(h=>h.accuracy>=90)},
+    {ic:"📚", en:"100 Questions", hi:"100 प्रश्न", unlocked: state.quizHistory.length*10>=100},
+    {ic:"🥇", en:"50 Quizzes", hi:"50 क्विज़", unlocked: state.quizzesPlayed>=50},
+    {ic:"💯", en:"100% Accuracy", hi:"100% सटीकता", unlocked: state.quizHistory.some(h=>h.accuracy===100)},
+    {ic:"🔥", en:"50-Day Streak", hi:"50-दिन स्ट्रीक", unlocked: state.streak>=50},
+    {ic:"🏆", en:"Quiz Master", hi:"क्विज़ मास्टर", unlocked: state.level>=5}
+  ];
+  document.getElementById("badgeGrid").innerHTML = badges.map(b=>`<div class="badge ${b.unlocked?'':'locked'}"><div class="ic">${b.ic}</div><span>${state.lang==="hi"?b.hi:b.en}</span></div>`).join("");
+}
+function renderHistory(){
+  const wrap = document.getElementById("historyList");
+  if(!wrap) return;
+  if(state.quizHistory.length===0){ wrap.innerHTML = `<div class="empty-note" style="margin-top:20px">${t("empty.history")}</div>`; return; }
+  wrap.innerHTML = state.quizHistory.map(h=>{
+    const catObj = CATEGORIES.find(c=>c.id===h.catId);
+    const catName = catObj ? (state.lang==="hi"?catObj.hi:catObj.en) : h.catId;
+    return `<div style="background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:9px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center">
+      <div><b style="font-size:13.5px">${catName}</b><div style="font-size:11px;color:var(--ink-faint);margin-top:2px">${state.lang==="hi"?h.dateHi:h.dateEn}</div></div>
+      <div style="text-align:right"><b class="mono" style="font-size:14px;color:var(--primary)">${h.score}/${h.total}</b><div style="font-size:11px;color:var(--ink-faint)">${h.accuracy}%</div></div>
+    </div>`;
+  }).join("");
+}
+
+const NOTIF_ITEMS = [
+  {ic:"🔥", en:"Your daily quiz is ready — keep the streak alive!", hi:"आपका दैनिक क्विज़ तैयार है — स्ट्रीक जारी रखें!", timeEn:"2h ago", timeHi:"2 घं. पहले"},
+  {ic:"📰", en:"New Current Affairs added: RBI policy review", hi:"नया करेंट अफेयर्स जोड़ा गया: आरबीआई नीति समीक्षा", timeEn:"5h ago", timeHi:"5 घं. पहले"},
+  {ic:"🏅", en:"You unlocked the 'First Quiz' badge", hi:"आपने 'पहला क्विज़' बैज अनलॉक किया", timeEn:"1d ago", timeHi:"1 दिन पहले"},
+  {ic:"⏰", en:"Don't lose your streak — 3 hours left today", hi:"अपनी स्ट्रीक न खोएं — आज 3 घंटे शेष हैं", timeEn:"1d ago", timeHi:"1 दिन पहले"}
+];
+function renderNotifications(){
+  const wrap = document.getElementById("notifList");
+  if(!wrap) return;
+  wrap.innerHTML = NOTIF_ITEMS.map(n=>`
+    <div style="display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:9px;box-shadow:var(--shadow)">
+      <div style="font-size:18px">${n.ic}</div>
+      <div><p style="margin:0;font-size:13px;line-height:1.45">${state.lang==="hi"?n.hi:n.en}</p><span style="font-size:10.5px;color:var(--ink-faint)">${state.lang==="hi"?n.timeHi:n.timeEn}</span></div>
+    </div>`).join("");
+}
+
+function runSearch(){
+  const qv = document.getElementById("searchInput").value.trim().toLowerCase();
+  const results = document.getElementById("searchResults");
+  if(!qv){ results.innerHTML = ""; return; }
+  let html = "";
+  const catMatches = CATEGORIES.filter(c=>(state.lang==="hi"?c.hi:c.en).toLowerCase().includes(qv) || c.en.toLowerCase().includes(qv));
+  const examMatches = EXAMS.filter(e=>e.en.toLowerCase().includes(qv) || e.hi.includes(qv));
+  let qMatches = [];
+  Object.keys(QUESTIONS).forEach(catId=>{
+    QUESTIONS[catId].forEach((q,i)=>{
+      if(q.q.en.toLowerCase().includes(qv) || q.q.hi.includes(qv)) qMatches.push({catId, i, q});
+    });
+  });
+  const caMatches = CURRENT_AFFAIRS.filter(it=> it.titleEn.toLowerCase().includes(qv) || it.titleHi.includes(qv));
+
+  if(catMatches.length){ html += `<div class="search-result-group"><h4>${state.lang==="hi"?"श्रेणियाँ":"Categories"}</h4>` + catMatches.map(c=>`<button class="sub-item" style="width:100%;margin-bottom:8px" onclick="startQuiz('${c.id}')"><div class="left"><div class="ic">${c.icon}</div><b>${state.lang==="hi"?c.hi:c.en}</b></div><span class="chev">›</span></button>`).join("") + `</div>`; }
+  if(examMatches.length){ html += `<div class="search-result-group"><h4>${state.lang==="hi"?"परीक्षाएँ":"Exams"}</h4>` + examMatches.map(e=>`<button class="exam-chip" style="margin-right:6px" onclick="goTo('examzone')">${state.lang==="hi"?e.hi:e.en}</button>`).join("") + `</div>`; }
+  if(qMatches.length){ html += `<div class="search-result-group"><h4>${state.lang==="hi"?"प्रश्न":"Questions"}</h4>` + qMatches.slice(0,6).map(m=>`<button class="sub-item" style="width:100%;margin-bottom:8px" onclick="startQuiz('${m.catId}')"><div class="left"><b style="font-size:12.5px">${m.q.q[state.lang]}</b></div><span class="chev">›</span></button>`).join("") + `</div>`; }
+  if(caMatches.length){ html += `<div class="search-result-group"><h4>${state.lang==="hi"?"करेंट अफेयर्स":"Current Affairs"}</h4>` + caMatches.map(it=>`<button class="sub-item" style="width:100%;margin-bottom:8px" onclick="goTo('affairs')"><div class="left"><b style="font-size:12.5px">${state.lang==="hi"?it.titleHi:it.titleEn}</b></div><span class="chev">›</span></button>`).join("") + `</div>`; }
+
+  results.innerHTML = html || `<div class="empty-note" style="margin-top:10px">${t("noresults")}</div>`;
+}
+
+function setAdminTab(tab){
+  state.adminTab = tab;
+  document.getElementById("adminTabQ").classList.toggle("active", tab==="questions");
+  document.getElementById("adminTabA").classList.toggle("active", tab==="add");
+  document.getElementById("adminTabC").classList.toggle("active", tab==="cats");
+  document.getElementById("adminTabS").classList.toggle("active", tab==="stats");
+  document.getElementById("adminQuestionsPane").style.display = tab==="questions" ? "block":"none";
+  document.getElementById("adminAddPane").style.display = tab==="add" ? "block":"none";
+  document.getElementById("adminCatsPane").style.display = tab==="cats" ? "block":"none";
+  document.getElementById("adminStatsPane").style.display = tab==="stats" ? "block":"none";
+  if(tab==="cats") renderAdminCategoriesTab();
+  if(tab==="stats") renderAdminAccess();
+}
+function renderAdminCategorySelect(){
+  const sel = document.getElementById("afCat");
+  if(!sel) return;
+  sel.innerHTML = CATEGORY_GROUPS.map(g=>
+    `<optgroup label="${state.lang==="hi"?g.hi:g.en}">` +
+    CATEGORIES.filter(c=>c.group===g.id).map(c=>`<option value="${c.id}">${state.lang==="hi"?c.hi:c.en}</option>`).join("") +
+    `</optgroup>`
+  ).join("");
+  document.getElementById("adminStatC").textContent = CATEGORIES.length;
+}
+
+// ---------------- Categories / Groups admin management ----------------
+function renderAdminCategoriesTab(){
+  const groupsWrap = document.getElementById("adminGroupsList");
+  const subGroupSel = document.getElementById("asGroup");
+  if(!groupsWrap || !subGroupSel) return;
+  groupsWrap.innerHTML = CATEGORY_GROUPS.map(g=>{
+    const count = CATEGORIES.filter(c=>c.group===g.id).length;
+    return `<div class="admin-q-row"><div class="top"><p><b>${state.lang==="hi"?g.hi:g.en}</b> · ${count} ${state.lang==="hi"?"उप-श्रेणियाँ":"sub-categories"}</p></div></div>`;
+  }).join("");
+  subGroupSel.innerHTML = CATEGORY_GROUPS.map(g=>`<option value="${g.id}">${state.lang==="hi"?g.hi:g.en}</option>`).join("");
+
+  const subsWrap = document.getElementById("adminSubcatsList");
+  subsWrap.innerHTML = CATEGORIES.map(c=>{
+    const g = CATEGORY_GROUPS.find(x=>x.id===c.group);
+    return `<div class="admin-q-row">
+      <div class="top"><p>${c.icon} <b>${state.lang==="hi"?c.hi:c.en}</b></p>
+        <div class="admin-q-actions"><button onclick="adminDeleteSubcat('${c.id}')">🗑</button></div>
+      </div>
+      <div class="meta">${g?(state.lang==="hi"?g.hi:g.en):c.group} · ${(QUESTIONS[c.id]||[]).length} ${state.lang==="hi"?"प्रश्न":"questions"}</div>
+    </div>`;
+  }).join("");
+}
+function adminAddGroup(){
+  const en = document.getElementById("agNameEn").value.trim();
+  const hi = document.getElementById("agNameHi").value.trim();
+  if(!en || !hi) return;
+  const id = "grp_" + en.toLowerCase().replace(/[^a-z0-9]+/g,"_").slice(0,24) + "_" + Date.now().toString(36).slice(-4);
+  const newGroup = {id, en, hi};
+  if(firebaseReady){ db.collection("categoryGroups").doc(id).set(newGroup); }
+  else { CATEGORY_GROUPS.push(newGroup); }
+  document.getElementById("agNameEn").value=""; document.getElementById("agNameHi").value="";
+  showToast("toast.groupAdded");
+  renderAdminCategoriesTab(); renderCategoryBlocks();
+}
+function adminAddSubcat(){
+  const groupId = document.getElementById("asGroup").value;
+  const en = document.getElementById("asNameEn").value.trim();
+  const hi = document.getElementById("asNameHi").value.trim();
+  if(!en || !hi) return;
+  const id = "cat_" + en.toLowerCase().replace(/[^a-z0-9]+/g,"_").slice(0,24) + "_" + Date.now().toString(36).slice(-4);
+  const newCat = {id, icon:"📌", en, hi, group:groupId};
+  if(firebaseReady){ db.collection("categories").doc(id).set(newCat); }
+  else { CATEGORIES.push(newCat); QUESTIONS[id] = []; }
+  document.getElementById("asNameEn").value=""; document.getElementById("asNameHi").value="";
+  showToast("toast.subcatAdded");
+  renderAdminCategoriesTab(); renderCategoryBlocks(); renderHomeTiles(); renderAdminCategorySelect();
+}
+function adminDeleteSubcat(id){
+  if(firebaseReady){ db.collection("categories").doc(id).delete(); }
+  else { CATEGORIES = CATEGORIES.filter(c=>c.id!==id); delete QUESTIONS[id]; }
+  renderAdminCategoriesTab(); renderCategoryBlocks(); renderHomeTiles(); renderAdminCategorySelect();
+}
+function renderAdminQuestions(){
+  const wrap = document.getElementById("adminQList");
+  if(!wrap) return;
+  let all = [];
+  Object.keys(QUESTIONS).forEach(catId=>{
+    if(catId==="daily"||catId==="affairs") return;
+    QUESTIONS[catId].forEach((q,i)=> all.push({catId, i, q}));
+  });
+  document.getElementById("adminStatQ").textContent = all.length;
+  wrap.innerHTML = all.map(item=>{
+    const catObj = CATEGORIES.find(c=>c.id===item.catId);
+    return `<div class="admin-q-row">
+      <div class="top"><p>${item.q.q.en}</p>
+        <div class="admin-q-actions">
+          <button onclick="alert('Edit form would open here in the full build.')">✎</button>
+          <button onclick="adminDeleteQuestion('${item.catId}', ${item.i})">🗑</button>
+        </div>
+      </div>
+      <div class="meta">${catObj?catObj.en:item.catId} · EN + HI ✓</div>
+    </div>`;
+  }).join("");
+}
+function adminDeleteQuestion(catId, i){
+  const q = QUESTIONS[catId][i];
+  if(firebaseReady && q && q._fid){ db.collection("questions").doc(q._fid).delete(); return; }
+  QUESTIONS[catId].splice(i,1);
+  renderAdminQuestions(); renderHomeTiles(); renderCategoryBlocks();
+}
+function adminAddQuestion(){
+  const qEn = document.getElementById("afQEn").value.trim();
+  const qHi = document.getElementById("afQHi").value.trim();
+  const cat = document.getElementById("afCat").value;
+  const correct = parseInt(document.getElementById("afCorrect").value);
+  if(!qEn || !qHi){ alert(state.lang==="hi" ? "कृपया दोनों भाषाओं में प्रश्न भरें।" : "Please fill the question in both languages."); return; }
+  const optsEn = [document.getElementById("afOA_en").value, document.getElementById("afOB_en").value, document.getElementById("afOC_en").value, document.getElementById("afOD_en").value];
+  const optsHi = [document.getElementById("afOA_hi").value, document.getElementById("afOB_hi").value, document.getElementById("afOC_hi").value, document.getElementById("afOD_hi").value];
+  const exEn = document.getElementById("afExEn").value, exHi = document.getElementById("afExHi").value;
+
+  if(firebaseReady){
+    db.collection("questions").add({ categoryId:cat, qEn, qHi, optsEn, optsHi, correct, exEn, exHi, createdAt: Date.now() });
+  } else {
+    const newQ = mkQ(qEn, qHi, optsEn, optsHi, correct, exEn, exHi, "—", "—");
+    if(!QUESTIONS[cat]) QUESTIONS[cat] = [];
+    QUESTIONS[cat].push(newQ);
+  }
+  showToast("toast.added");
+  ["afQEn","afQHi","afOA_en","afOA_hi","afOB_en","afOB_hi","afOC_en","afOC_hi","afOD_en","afOD_hi","afExEn","afExHi"].forEach(id=>document.getElementById(id).value="");
+  renderAdminQuestions(); renderHomeTiles(); renderCategoryBlocks();
+  setAdminTab("questions");
+}
+
+// ================================================================
+// AUTH (Google via Firebase) + ADMIN ACCESS CONTROL
+// ================================================================
+function renderAuthUI(){
+  const wrap = document.getElementById("authGroup");
+  if(!wrap) return;
+  if(!firebaseReady){
+    wrap.innerHTML = `
+      <button class="settings-row" style="width:100%;border-radius:12px" onclick="signInWithGoogle()">
+        <span class="left">🔵 ${t('auth.signin')}</span><span class="chev">›</span>
+      </button>
+      <div class="empty-note" style="margin-top:8px">${t('auth.notConfigured')}</div>`;
+    document.getElementById("adminSettingsGroup").style.display = "none";
+    return;
+  }
+  if(!state.user){
+    wrap.innerHTML = `
+      <button class="settings-row" style="width:100%;border-radius:12px" onclick="signInWithGoogle()">
+        <span class="left">🔵 ${t('auth.signin')}</span><span class="chev">›</span>
+      </button>`;
+    document.getElementById("adminSettingsGroup").style.display = "none";
+    return;
+  }
+  const photo = state.user.photoURL
+    ? `<img src="${state.user.photoURL}" style="width:36px;height:36px;border-radius:50%">`
+    : `<div class="profile-avatar" style="width:36px;height:36px;font-size:14px;margin:0">${(state.user.displayName||"U").charAt(0)}</div>`;
+  wrap.innerHTML = `
+    <div class="settings-row" style="border-radius:12px 12px 0 0">
+      <div class="left" style="gap:10px">${photo}<div>
+        <b style="display:block;font-size:13px">${state.user.displayName||state.user.email}</b>
+        <span style="font-size:11px;color:var(--ink-faint)">${state.user.email}${state.isAdmin?' · <b style="color:var(--accent-dark)">'+t('auth.admin')+'</b>':''}</span>
+      </div></div>
+    </div>
+    <button class="settings-row" style="width:100%;border-radius:0 0 12px 12px" onclick="signOutUser()">
+      <span class="left">🚪 ${t('auth.signout')}</span>
+    </button>`;
+  document.getElementById("adminSettingsGroup").style.display = state.isAdmin ? "block" : "none";
+}
+
+function signInWithGoogle(){
+  if(!firebaseReady){ showToast("auth.notConfigured"); return; }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err=>{ console.error(err); alert(err.message); });
+}
+function signOutUser(){
+  if(!firebaseReady) return;
+  auth.signOut();
+}
+async function checkAdminStatus(user){
+  if(!firebaseReady || !user) { state.isAdmin = false; return; }
+  try{
+    const doc = await db.collection("admins").doc(user.email).get();
+    if(doc.exists){
+      state.isAdmin = true;
+      console.log("[FIREBASE] Admin status:", true, "(existing admin)");
+      return;
+    }
+    // Bootstrap: the very first authenticated user becomes admin, exactly once, guarded by
+    // meta/bootstrap so this path can never fire again after the first admin is created
+    // (see the matching Firestore rule below).
+    const bootDoc = await db.collection("meta").doc("bootstrap").get();
+    if(!bootDoc.exists){
+      await bootstrapFirstAdmin(user);
+      state.isAdmin = true;
+      console.log("[FIREBASE] Admin status:", true, "(bootstrap — first account)");
+    } else {
+      state.isAdmin = false;
+      console.log("[FIREBASE] Admin status:", false);
+    }
+  }catch(e){ console.error("[FIREBASE] Admin check failed:", e); state.isAdmin = false; }
+}
+async function bootstrapFirstAdmin(user){
+  const batch = db.batch();
+  batch.set(db.collection("admins").doc(user.email), { addedAt: firebase.firestore.FieldValue.serverTimestamp(), addedBy: "bootstrap" });
+  batch.set(db.collection("meta").doc("bootstrap"), { initialized: true, byEmail: user.email, at: firebase.firestore.FieldValue.serverTimestamp() });
+  await batch.commit();
+}
+function renderAdminAccess(){
+  const wrap = document.getElementById("adminAccessList");
+  if(!wrap) return;
+  if(!firebaseReady){ wrap.innerHTML = `<div class="empty-note">${t('auth.notConfigured')}</div>`; return; }
+  db.collection("admins").get().then(snap=>{
+    const rows = [];
+    snap.forEach(d=> rows.push(d.id));
+    wrap.innerHTML = rows.map(email=>`
+      <div class="admin-q-row"><div class="top"><p>👤 ${email}</p>
+        <div class="admin-q-actions"><button onclick="adminRemoveAdmin('${email}')">🗑</button></div>
+      </div></div>`).join("") || `<div class="empty-note">—</div>`;
+  });
+}
+function adminAddAdmin(){
+  const email = document.getElementById("adminNewEmail").value.trim().toLowerCase();
+  if(!email || !firebaseReady) return;
+  db.collection("admins").doc(email).set({ addedAt: firebase.firestore.FieldValue.serverTimestamp(), addedBy: state.user ? state.user.email : "unknown" })
+    .then(()=>{ showToast("toast.adminAdded"); document.getElementById("adminNewEmail").value=""; renderAdminAccess(); })
+    .catch(e=> console.error("[FIREBASE] adminAddAdmin error:", e));
+}
+function adminRemoveAdmin(email){
+  if(!firebaseReady) return;
+  if(state.user && email===state.user.email){ alert(state.lang==="hi" ? "आप स्वयं को नहीं हटा सकते।" : "You can't remove yourself."); return; }
+  // Only ever deletes the admins/{email} pointer doc — never touches users/{uid}, so the
+  // person's account, XP, history and bookmarks are completely unaffected by losing admin rights.
+  db.collection("admins").doc(email).delete().then(renderAdminAccess).catch(e=> console.error("[FIREBASE] adminRemoveAdmin error:", e));
+}
+function renderAdminModeBanner(){
+  const el = document.getElementById("adminModeBanner");
+  if(!el) return;
+  el.textContent = firebaseReady ? t("admin.mode.live") : t("admin.mode.local");
+}
+
+// ================================================================
+// PER-USER DATA (users/{uid}, users/{uid}/history, users/{uid}/bookmarks)
+// ================================================================
+
+// Creates users/{uid} on first-ever login with safe zeroed defaults (never fake demo numbers),
+// or, if the doc already exists, only refreshes the profile fields (email/displayName/photoURL) —
+// merge:true means XP/level/streak/history the user already earned is never touched here.
+async function ensureUserDoc(user){
+  if(!firebaseReady || !user) return;
+  const ref = db.collection("users").doc(user.uid);
+  try{
+    const snap = await ref.get();
+    if(snap.exists){
+      await ref.set({
+        email: user.email,
+        displayName: user.displayName || "",
+        photoURL: user.photoURL || "",
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, {merge:true});
+      console.log("[FIREBASE] User document loaded:", snap.data());
+    } else {
+      const fresh = {
+        uid: user.uid, email: user.email,
+        displayName: user.displayName || "", photoURL: user.photoURL || "",
+        xp:0, level:1, levelName:"Beginner", streak:0, quizzesPlayed:0, bestScore:0,
+        quizHistory:[],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await ref.set(fresh, {merge:true});
+      console.log("[FIREBASE] User document saved:", fresh, "(new user created)");
+    }
+  }catch(e){ console.error("[FIREBASE] ensureUserDoc error:", e); }
+}
+
+// Pulls this user's saved progress out of Firestore and into state.* — called right after
+// ensureUserDoc() on every login, so the hard-coded guest numbers are fully replaced.
+async function loadUserData(user){
+  if(!firebaseReady || !user) return;
+  try{
+    const snap = await db.collection("users").doc(user.uid).get();
+    if(snap.exists){
+      const d = snap.data();
+      state.xp = typeof d.xp === "number" ? d.xp : 0;
+      state.streak = typeof d.streak === "number" ? d.streak : 0;
+      state.quizzesPlayed = typeof d.quizzesPlayed === "number" ? d.quizzesPlayed : 0;
+      state.bestScore = typeof d.bestScore === "number" ? d.bestScore : 0;
+      state.quizHistory = Array.isArray(d.quizHistory) ? d.quizHistory : [];
+      recomputeLevel(); // level/levelName are always derived from xp, never trusted blindly from storage
+      console.log("[FIREBASE] User data loaded:", d);
+    }
+  }catch(e){ console.error("[FIREBASE] loadUserData error:", e); }
+}
+
+// Loads this user's bookmarks (users/{uid}/bookmarks/{key}) into state.bookmarks.
+async function loadUserBookmarks(user){
+  if(!firebaseReady || !user) return;
+  try{
+    const snap = await db.collection("users").doc(user.uid).collection("bookmarks").get();
+    const set = new Set();
+    snap.forEach(d=> set.add(d.id));
+    state.bookmarks = set;
+    console.log("[FIREBASE] Bookmarks loaded:", set.size);
+  }catch(e){ console.error("[FIREBASE] loadUserBookmarks error:", e); }
+}
+
+// Reusable save — call this any time xp/level/streak/quizzesPlayed/bestScore/quizHistory change.
+// Always merge:true so uid/email/displayName/photoURL/createdAt are never clobbered.
+async function saveUserData(){
+  if(!firebaseReady || !state.user) return;
+  recomputeLevel();
+  const payload = {
+    xp: state.xp, level: state.level, levelName: state.levelName,
+    streak: state.streak, quizzesPlayed: state.quizzesPlayed, bestScore: state.bestScore,
+    quizHistory: state.quizHistory.slice(0,20),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try{
+    await db.collection("users").doc(state.user.uid).set(payload, {merge:true});
+    console.log("[FIREBASE] User document saved:", payload);
+  }catch(e){ console.error("[FIREBASE] saveUserData error:", e); }
+}
+
+// Appends one completed quiz to the full audit-log subcollection users/{uid}/history/{auto-id}.
+// The capped summary array used by the UI (state.quizHistory) is saved separately via saveUserData().
+function saveHistoryEntry(entry){
+  if(!firebaseReady || !state.user) return;
+  db.collection("users").doc(state.user.uid).collection("history").add({
+    category: entry.catId, score: entry.score, total: entry.total, accuracy: entry.accuracy,
+    date: new Date().toISOString(), timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(e=> console.error("[FIREBASE] saveHistoryEntry error:", e));
+}
+
+// Mirrors a bookmark add/remove to users/{uid}/bookmarks/{key}. No-op for guests (not signed in)
+// or when Firebase isn't configured — bookmarking still works locally in both those cases.
+function saveBookmarkToFirestore(key, added){
+  if(!firebaseReady || !state.user) return;
+  const ref = db.collection("users").doc(state.user.uid).collection("bookmarks").doc(key);
+  if(added){
+    ref.set({ key, createdAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e=> console.error("[FIREBASE] bookmark save error:", e));
+  } else {
+    ref.delete().catch(e=> console.error("[FIREBASE] bookmark delete error:", e));
+  }
+}
+
+// Wipes user-specific in-memory data on sign-out (or when the app loads with nobody signed in)
+// so the next Google account that signs in never sees a trace of the previous one.
+function clearUserSession(){
+  state.user = null;
+  state.isAdmin = false;
+  resetToGuestDefaults();
+  realLeaderboardCache = null;
+}
+
+// ================================================================
+// LEADERBOARD — real Firestore ranking once connected, mock data otherwise
+// ================================================================
+let realLeaderboardCache = null;
+async function loadRealLeaderboard(){
+  if(!firebaseReady) return null;
+  try{
+    const snap = await db.collection("users").orderBy("xp","desc").limit(20).get();
+    const rows = [];
+    snap.forEach(d=>{
+      const u = d.data();
+      rows.push({ name: u.displayName || u.email || "Aspirant", xp: u.xp||0, uid:d.id, me: state.user && d.id===state.user.uid });
+    });
+    console.log("[FIREBASE] Leaderboard loaded:", rows.length, "users");
+    return rows;
+  }catch(e){ console.error("[FIREBASE] leaderboard load error:", e); return null; }
+}
+
+// ================================================================
+// FIRESTORE LIVE SYNC — only activates once firebaseConfig is filled in
+// ================================================================
+function setupFirestoreSync(){
+  if(!firebaseReady) return;
+
+  db.collection("categoryGroups").onSnapshot(snap=>{
+    if(snap.empty) return; // keep local defaults until an admin adds Firestore-backed groups
+    const groups = [];
+    snap.forEach(d=> groups.push({id:d.id, ...d.data()}));
+    CATEGORY_GROUPS = groups;
+    renderCategoryBlocks(); renderAdminCategorySelect(); renderAdminCategoriesTab();
+  });
+
+  db.collection("categories").onSnapshot(snap=>{
+    if(snap.empty) return;
+    const cats = [];
+    snap.forEach(d=> cats.push({id:d.id, ...d.data()}));
+    CATEGORIES = cats;
+    renderCategoryBlocks(); renderHomeTiles(); renderAdminCategorySelect(); renderAdminCategoriesTab();
+  });
+
+  db.collection("questions").onSnapshot(snap=>{
+    if(snap.empty) return;
+    const byCat = {};
+    snap.forEach(d=>{
+      const data = d.data();
+      const q = mkQ(data.qEn, data.qHi, data.optsEn, data.optsHi, data.correct, data.exEn, data.exHi, "—", "—");
+      q._fid = d.id;
+      if(!byCat[data.categoryId]) byCat[data.categoryId] = [];
+      byCat[data.categoryId].push(q);
+    });
+    Object.keys(byCat).forEach(catId=>{ QUESTIONS[catId] = byCat[catId]; });
+    renderAdminQuestions(); renderHomeTiles(); renderCategoryBlocks();
+  });
+}
+
+if(firebaseReady){
+  auth.onAuthStateChanged(async user=>{
+    console.log("[FIREBASE] Auth user:", user ? user.email : null);
+    if(user){
+      state.user = user;
+      await checkAdminStatus(user);
+      await ensureUserDoc(user);
+      await loadUserData(user);
+      await loadUserBookmarks(user);
+      realLeaderboardCache = null; // refetch so ranking + "me" marker reflect the newly signed-in user
+    } else {
+      clearUserSession();
+    }
+    renderAuthUI();
+    renderProfile();
+    renderHistory();
+    if(document.getElementById("screen-bookmarks").classList.contains("active")) renderBookmarksScreen();
+    if(document.getElementById("screen-admin").classList.contains("active")){ renderAdminAccess(); }
+    if(document.getElementById("screen-leaderboard").classList.contains("active")) renderLeaderboard();
+  });
+  setupFirestoreSync();
+} else {
+  resetToGuestDefaults();
+}
+</script>
+</body>
+</html>
