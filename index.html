@@ -1430,6 +1430,11 @@ function renderProfile(){
   recomputeLevel();
   const nameEl = document.getElementById("profName");
   if(!nameEl) return;
+  if(state.user){
+  nameEl.textContent = state.user.displayName || state.user.email || "Aspirant";
+  document.getElementById("profAvatar").textContent =
+    (state.user.displayName || state.user.email || "A").charAt(0).toUpperCase();
+}
   document.getElementById("profLevel").textContent = `${state.lang==="hi"?state.levelNameHi:state.levelName} · Level ${state.level}`;
   const span = state.xpNext - state.xpFloor;
   const pct = Math.min(100, Math.round(((state.xp - state.xpFloor)/span)*100));
