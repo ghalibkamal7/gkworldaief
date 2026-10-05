@@ -1964,31 +1964,49 @@ async function aiSendMessage(){
   // Real call — only reachable once AI_HELPER_CONFIG.apiKey is filled in. Left implemented
   // (rather than stubbed) so enabling it later is just "paste a key", per your instructions —
   // see the security note on AI_HELPER_CONFIG above before relying on this with real users.
-  try{
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": AI_HELPER_CONFIG.apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true"
-      },
-      body: JSON.stringify({
-        model: AI_HELPER_CONFIG.model,
-        max_tokens: 1024,
-        system: "You are a careful, encouraging study helper for Indian competitive-exam and school students, on the AIEF Quiz app. Explain doubts step by step in whichever of English, Hindi, or Hinglish the student used. Double-check any calculation before giving it. If you are not confident of a fact, say so plainly instead of guessing.",
-        messages: aiChatHistory.map(m=>({role:m.role, content:m.content}))
-      })
-    });
-    const data = await res.json();
-    const reply = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : "…";
-    aiChatHistory.push({role:"assistant", content: reply});
-  }catch(e){
-    console.error("[AI HELPER] request failed:", e);
-    aiChatHistory.push({role:"assistant", content: state.lang==="hi" ? "माफ़ कीजिए, अभी जवाब नहीं मिल पाया।" : "Sorry, I couldn't get a response just now."});
+  try {
+  const res = await fetch(AI_HELPER_CONFIG.endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: aiChatHistory[aiChatHistory.length - 1]?.content || "",
+      history: aiChatHistory.slice(0, -1),
+      systemInstruction:
+        "You are a careful, encouraging study helper for Indian competitive-exam and school students, on the AIEF Quiz app. Explain doubts step by step in whichever of English, Hindi, or Hinglish the student used. Double-check any calculation before giving it. If you are not confident of a fact, say so plainly instead of guessing."
+    })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data?.error || "AI Helper request failed.");
   }
-  renderAiMessages();
+
+  const reply =
+    typeof data?.answer === "string" && data.answer.trim()
+      ? data.answer.trim()
+      : "Sorry, I couldn't get a response just now.";
+
+  aiChatHistory.push({
+    role: "assistant",
+    content: reply
+  });
+
+} catch (e) {
+  console.error("[AI HELPER] request failed:", e);
+
+  aiChatHistory.push({
+    role: "assistant",
+    content:
+      state.lang === "hi"
+        ? "माफ़ कीजिए, अभी जवाब नहीं मिल पाया।"
+        : "Sorry, I couldn't get a response just now."
+  });
 }
+
+renderAiMessages();
 
 // ================================================================
 // ADMIN — Questions / Add New / Content Tree / Stats
