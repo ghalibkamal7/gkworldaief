@@ -111,7 +111,7 @@ const I18N = {
     "ai.cardTitle":"AI Helper","ai.cardSub":"Ask a doubt, get it explained","ai.title":"AI Helper",
     "ai.inputPh":"Ask a doubt — English, Hindi or Hinglish…",
     "ai.notConfigured":"The AI Helper isn't connected yet — an admin needs to add an API key before it can answer questions. The chat UI is ready and waiting.",
-    "ai.welcome":"Hi! Once an admin connects an AI provider, you'll be able to ask doubts here in English, Hindi, or Hinglish and get step-by-step explanations.",
+    "ai.welcome": "Hi! I'm your AI study helper. Ask me any doubt in English, Hindi, or Hinglish and I'll explain it step by step."
     "ai.notReadyToast":"AI Helper isn't connected yet — ask your admin to add an API key."
   },
   hi: {
