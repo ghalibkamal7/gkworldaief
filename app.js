@@ -41,13 +41,15 @@ try{
       "anthropic-dangerous-direct-browser-access" header below — Anthropic ships this header
       specifically to make that risk explicit, not as an endorsement of the approach.
 --------------------------------------------------------------- */
+```js
 const AI_HELPER_CONFIG = {
-  apiKey: "",                              // paste a key here to enable — leave empty to keep disabled
-  model: "claude-sonnet-4-5-20250929",     // check docs.claude.com for the current recommended model
-  enabled: false                           // flips to true automatically once apiKey is non-empty
+  endpoint: "/api/ai-helper",
+  model: "gemini-2.5-flash",
+  enabled: true
 };
-AI_HELPER_CONFIG.enabled = !!AI_HELPER_CONFIG.apiKey;
+
 let aiChatHistory = []; // [{role:"user"|"assistant", content:"..."}]
+```
 
 const I18N = {
   en: {
