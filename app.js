@@ -48,7 +48,6 @@ const AI_HELPER_CONFIG = {
 };
 
 let aiChatHistory = []; // [{role:"user"|"assistant", content:"..."}]
-```
 
 const I18N = {
   en: {
