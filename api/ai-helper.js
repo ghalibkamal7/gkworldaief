@@ -1,31 +1,20 @@
 // AIEF Quiz — Gemini AI Helper backend
 // Vercel Serverless Function
-//
-// Features:
-// - Gemini 3.8 Flash as primary model
-// - Automatic retry for temporary errors (503/500/502/504/429)
-// - Exponential backoff + jitter
-// - Automatic fallback to Gemini 3.6 Flash
-// - Keeps API key safely on the server
-// - Supports chat history + system instruction
 
 const PRIMARY_MODEL = "gemini-3.8-flash";
 const FALLBACK_MODEL = "gemini-3.6-flash";
 
-// Number of total attempts for each model.
 const PRIMARY_ATTEMPTS = 3;
 const FALLBACK_ATTEMPTS = 2;
 
-// Base delay for exponential backoff.
 const BASE_DELAY_MS = 800;
 
-// Errors that are normally temporary and worth retrying.
 const RETRYABLE_STATUS_CODES = new Set([
-  429, // Too Many Requests
-  500, // Internal Server Error
-  502, // Bad Gateway
-  503, // Service Unavailable
-  504  // Gateway Timeout
+  429,
+  500,
+  502,
+  503,
+  504
 ]);
 
 function sleep(ms) {
@@ -35,7 +24,6 @@ function sleep(ms) {
 }
 
 function getRetryDelay(attempt, response) {
-  // If Google sends Retry-After, respect it when possible.
   const retryAfter = response?.headers?.get("retry-after");
 
   if (retryAfter) {
@@ -46,13 +34,6 @@ function getRetryDelay(attempt, response) {
     }
   }
 
-  // Exponential backoff:
-  // attempt 1 -> ~800ms
-  // attempt 2 -> ~1600ms
-  // attempt 3 -> ~3200ms
-  //
-  // Small random jitter prevents repeated requests from
-  // hitting the API at exactly the same time.
   const exponentialDelay =
     BASE_DELAY_MS * Math.pow(2, attempt - 1);
 
@@ -65,7 +46,8 @@ async function callGemini({
   apiKey,
   model,
   contents,
-  systemInstruction
+  systemInstruction,
+  attempts
 }) {
   const geminiUrl =
     "https://generativelanguage.googleapis.com/v1beta/models/" +
@@ -92,7 +74,7 @@ async function callGemini({
   let lastResponse = null;
   let lastData = null;
 
-  for (let attempt = 1; attempt <= arguments[0]?.attempts; attempt++) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       const response = await fetch(geminiUrl, {
         method: "POST",
@@ -118,7 +100,7 @@ async function callGemini({
         lastResponse = response;
         lastData = null;
 
-        if (attempt < arguments[0]?.attempts) {
+        if (attempt < attempts) {
           const delay = getRetryDelay(attempt, response);
 
           console.warn(
@@ -147,7 +129,7 @@ async function callGemini({
       const shouldRetry =
         RETRYABLE_STATUS_CODES.has(response.status);
 
-      if (!shouldRetry || attempt >= arguments[0]?.attempts) {
+      if (!shouldRetry || attempt >= attempts) {
         break;
       }
 
@@ -155,7 +137,7 @@ async function callGemini({
 
       console.warn(
         `[AI HELPER] ${model} returned ${response.status}. ` +
-        `Retry ${attempt + 1}/${arguments[0]?.attempts} ` +
+        `Retry ${attempt + 1}/${attempts} ` +
         `in ${delay}ms.`
       );
 
@@ -167,7 +149,7 @@ async function callGemini({
         error
       );
 
-      if (attempt >= arguments[0]?.attempts) {
+      if (attempt >= attempts) {
         return {
           ok: false,
           status: 500,
@@ -202,11 +184,16 @@ async function callGemini({
 
 export default async function handler(req, res) {
   // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "*"
+  );
+
   res.setHeader(
     "Access-Control-Allow-Methods",
     "POST, OPTIONS"
   );
+
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type"
@@ -261,7 +248,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Keep only valid recent conversation history.
+    // Keep only recent valid conversation history
     const safeHistory = history
       .slice(-20)
       .filter(function (item) {
@@ -291,7 +278,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // Add the current user message.
+    // Current user message
     contents.push({
       role: "user",
       parts: [
@@ -302,7 +289,7 @@ export default async function handler(req, res) {
     });
 
     // -------------------------------------------------------
-    // 1. PRIMARY MODEL
+    // PRIMARY MODEL
     // -------------------------------------------------------
 
     console.log(
@@ -343,7 +330,7 @@ export default async function handler(req, res) {
     }
 
     // -------------------------------------------------------
-    // 2. FALLBACK MODEL
+    // FALLBACK MODEL
     // -------------------------------------------------------
 
     console.warn(
@@ -385,7 +372,7 @@ export default async function handler(req, res) {
     }
 
     // -------------------------------------------------------
-    // 3. BOTH MODELS FAILED
+    // BOTH MODELS FAILED
     // -------------------------------------------------------
 
     const primaryError =
@@ -406,13 +393,13 @@ export default async function handler(req, res) {
       }
     );
 
-    // Give the frontend a useful error.
-    // 503 is used when Gemini capacity/service is unavailable.
     const finalStatus =
       fallbackResult.status === 503 ||
       primaryResult.status === 503
         ? 503
-        : fallbackResult.status || primaryResult.status || 500;
+        : fallbackResult.status ||
+          primaryResult.status ||
+          500;
 
     return res.status(finalStatus).json({
       error:
