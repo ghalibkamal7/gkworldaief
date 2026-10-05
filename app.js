@@ -41,7 +41,6 @@ try{
       "anthropic-dangerous-direct-browser-access" header below — Anthropic ships this header
       specifically to make that risk explicit, not as an endorsement of the approach.
 --------------------------------------------------------------- */
-```js
 const AI_HELPER_CONFIG = {
   endpoint: "/api/ai-helper",
   model: "gemini-2.5-flash",
