@@ -111,7 +111,7 @@ const I18N = {
     "ai.cardTitle":"AI Helper","ai.cardSub":"Ask a doubt, get it explained","ai.title":"AI Helper",
     "ai.inputPh":"Ask a doubt — English, Hindi or Hinglish…",
     "ai.notConfigured":"The AI Helper isn't connected yet — an admin needs to add an API key before it can answer questions. The chat UI is ready and waiting.",
-    "ai.welcome": "Hi! I'm your AI study helper. Ask me any doubt in English, Hindi, or Hinglish and I'll explain it step by step."
+    "ai.welcome": "Hi! I'm your AI study helper. Ask me any doubt in English, Hindi, or Hinglish and I'll explain it step by step.",
     "ai.notReadyToast":"AI Helper isn't connected yet — ask your admin to add an API key."
   },
   hi: {
@@ -175,7 +175,7 @@ const I18N = {
     "ai.cardTitle":"AI हेल्पर","ai.cardSub":"अपना डाउट पूछें, समझ लें","ai.title":"AI हेल्पर",
     "ai.inputPh":"अपना डाउट पूछें — अंग्रेज़ी, हिन्दी या हिंग्लिश में…",
     "ai.notConfigured":"AI हेल्पर अभी जुड़ा नहीं है — जवाब देने से पहले किसी एडमिन को API key जोड़नी होगी। चैट UI तैयार है और इंतज़ार कर रहा है।",
-    "ai.welcome": "नमस्ते! मैं आपका AI Study Helper हूँ। आप English, Hindi या Hinglish में कोई भी सवाल पूछ सकते हैं। मैं उसे step-by-step समझाऊँगा।"
+    "ai.welcome": "नमस्ते! मैं आपका AI Study Helper हूँ। आप English, Hindi या Hinglish में कोई भी सवाल पूछ सकते हैं। मैं उसे step-by-step समझाऊँगा।",
     "ai.notReadyToast":"AI हेल्पर अभी जुड़ा नहीं है — अपने एडमिन से API key जुड़वाइए।"
   }
 };
