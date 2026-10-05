@@ -1,18 +1,18 @@
 // AIEF Quiz — Gemini AI Helper backend
 // Vercel Serverless Function
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Handle preflight request
+  // Preflight
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
 
-  // Only POST is allowed
+  // Only POST
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Method not allowed"
@@ -20,7 +20,6 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // Read Gemini API key from Vercel Environment Variables
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
@@ -34,7 +33,11 @@ module.exports = async function handler(req, res) {
     const body = req.body || {};
 
     const message = body.message;
-    const history = Array.isArray(body.history) ? body.history : [];
+
+    const history = Array.isArray(body.history)
+      ? body.history
+      : [];
+
     const systemInstruction =
       typeof body.systemInstruction === "string"
         ? body.systemInstruction
@@ -46,36 +49,40 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Keep only the latest 20 history messages
+    // Keep only recent conversation history
     const safeHistory = history
       .slice(-20)
-      .filter(
-        item =>
+      .filter(function (item) {
+        return (
           item &&
           (item.role === "user" || item.role === "model") &&
           typeof item.content === "string"
-      );
+        );
+      });
 
-    const contents = [
-      ...safeHistory.map(item => ({
+    const contents = [];
+
+    for (const item of safeHistory) {
+      contents.push({
         role: item.role,
         parts: [
           {
             text: item.content
           }
         ]
-      })),
+      });
+    }
 
-      {
-        role: "user",
-        parts: [
-          {
-            text: message
-          }
-        ]
-      }
-    ];
+    contents.push({
+      role: "user",
+      parts: [
+        {
+          text: message
+        }
+      ]
+    });
 
+    // Current Gemini model
     const model = "gemini-3.8-flash";
 
     const geminiUrl =
@@ -84,31 +91,29 @@ module.exports = async function handler(req, res) {
       ":generateContent?key=" +
       encodeURIComponent(apiKey);
 
+    const requestBody = {
+      contents: contents,
+      generationConfig: {
+        maxOutputTokens: 1200
+      }
+    };
+
+    if (systemInstruction) {
+      requestBody.systemInstruction = {
+        parts: [
+          {
+            text: systemInstruction
+          }
+        ]
+      };
+    }
+
     const geminiResponse = await fetch(geminiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        ...(systemInstruction
-          ? {
-              systemInstruction: {
-                parts: [
-                  {
-                    text: systemInstruction
-                  }
-                ]
-              }
-            }
-          : {}),
-
-        contents,
-
-       generationConfig: {
-  maxOutputTokens: 1200
-}
-        }
-      })
+      body: JSON.stringify(requestBody)
     });
 
     const responseText = await geminiResponse.text();
@@ -117,7 +122,7 @@ module.exports = async function handler(req, res) {
 
     try {
       data = JSON.parse(responseText);
-    } catch {
+    } catch (parseError) {
       console.error(
         "Gemini returned non-JSON response:",
         responseText.slice(0, 500)
@@ -140,7 +145,9 @@ module.exports = async function handler(req, res) {
 
     const answer =
       data?.candidates?.[0]?.content?.parts
-        ?.map(part => part?.text || "")
+        ?.map(function (part) {
+          return part?.text || "";
+        })
         .join("")
         .trim();
 
@@ -153,7 +160,7 @@ module.exports = async function handler(req, res) {
     }
 
     return res.status(200).json({
-      answer
+      answer: answer
     });
 
   } catch (error) {
@@ -163,4 +170,4 @@ module.exports = async function handler(req, res) {
       error: "AI Helper server error."
     });
   }
-};
+}
